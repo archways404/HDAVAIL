@@ -1,0 +1,13 @@
+{
+	"scripts": {
+		"build": "cd ui && pnpm install && pnpm run build",
+		"dev:web": "cd web && pnpm install && pnpm run dev",
+		"dev:js": "cd js-server && pnpm install && pnpm run dev",
+		"dev": "concurrently \"pnpm run dev:web\" \"pnpm run dev:js\"",
+		"delay": "sleep 10",
+		"test": "concurrently \"pnpm run dev:js\" \"pnpm run delay && cd js-server && npx jest\""
+	},
+	"devDependencies": {
+		"concurrently": "^8.2.2"
+	}
+}
