@@ -18,3 +18,4 @@ js-server/.env
 /node_modules
 pnpm-lock.yaml
 *.log
+web/.env
