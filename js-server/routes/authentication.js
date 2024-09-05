@@ -12,8 +12,10 @@ async function routes(fastify, options) {
 		const client = await fastify.pg.connect();
 		const user = await login(client, username, password);
 
+		console.log(user);
+
 		const authToken = fastify.jwt.sign(
-			{ id: user.id, username: user.username },
+			{ uuid: user.uuid, username: user.username, type: user.type },
 			{ expiresIn: '1h' }
 		);
 
@@ -151,6 +153,17 @@ async function routes(fastify, options) {
 			});
 		}
 	);
+
+	// Logout route in your server (Fastify)
+	fastify.get('/logout', async (request, reply) => {
+		// Clear the authToken cookie
+		reply.clearCookie('authToken', {
+			path: '/',
+			httpOnly: true,
+		});
+
+		return reply.send({ message: 'Logged out successfully' });
+	});
 };
 
 module.exports = routes;

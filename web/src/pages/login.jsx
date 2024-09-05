@@ -40,7 +40,7 @@ function Login() {
 			const result = await response.json();
 			setError('');
 
-			navigate('/');
+			navigate('/welcome');
 		} catch (error) {
 			setError(error.message);
 		}
