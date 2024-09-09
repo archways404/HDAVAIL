@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 import Layout from '../components/Layout';
@@ -102,11 +104,11 @@ function Login() {
 
 					<p className="text-sm text-center text-gray-600 dark:text-gray-400">
 						Don't know your password?{' '}
-						<a
-							href="/forgotpass"
+						<Link
+							to="/forgotpass"
 							className="text-green-500 hover:underline">
 							Reset it here
-						</a>
+						</Link>
 					</p>
 				</div>
 			</div>
