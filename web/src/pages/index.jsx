@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import DisplayStatus from '../components/DisplayStatus';
 
 function Index() {
 	return (
 		<Layout>
+			<div className="absolute bottom-4 right-4">
+				<DisplayStatus />
+			</div>
 			<div className="flex flex-col items-center justify-center min-h-screen">
 				<h1 className="text-4xl font-bold text-green-500 dark:text-green-400 mb-4">
 					Welcome to HDAVAIL
