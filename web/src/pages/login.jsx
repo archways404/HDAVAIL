@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 import Layout from '../components/Layout';
+import DisplayStatus from '../components/DisplayStatus';
 
 function Login() {
 	const [username, setUsername] = useState('');
@@ -50,6 +51,9 @@ function Login() {
 
 	return (
 		<Layout>
+			<div className="absolute bottom-4 right-4">
+				<DisplayStatus />
+			</div>
 			<div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
 				<div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 shadow-md rounded-lg">
 					<h2 className="text-2xl font-semibold text-center text-gray-900 dark:text-white">
