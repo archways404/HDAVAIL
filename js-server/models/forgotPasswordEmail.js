@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 function forgotPasswordEmailGetPlainTextContent(username, resetToken) {
 	return `
     Hi ${username}!
 
 		It seems like you requested to reset your password for HDAVAIL. Click the following link to reset it:
 
-		http://localhost:3000/resetPassword?token=${resetToken}
+		http://localhost:5173/resetPassword?token=${resetToken}
 
 		If you didn't request this, please ignore this email.
 
@@ -22,13 +24,13 @@ function forgotPasswordEmailGetHtmlContent(username, resetToken) {
                 <p>We received a request to reset your password for <strong>HDAVAIL</strong>. Click the button below to reset your password:</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a 
-                        href="http://localhost:3000/resetPassword?token=${resetToken}" 
+                        href="http://localhost:5173/resetPassword?token=${resetToken}" 
                         style="display: inline-block; background-color: #4CAF50; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
                         Reset Your Password
                     </a>
                 </div>
                 <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
-                <p><a href="http://localhost:3000/resetPassword?token=${resetToken}" style="color: #4CAF50;">http://localhost:3000/resetPassword?token=${resetToken}</a></p>
+                <p><a href="http://localhost:5173/resetPassword?token=${resetToken}" style="color: #4CAF50;">http://localhost:5173/resetPassword?token=${resetToken}</a></p>
                 <p>If you did not request a password reset, you can safely ignore this email. Your password will not be changed.</p>
                 <p>Thank you,</p>
                 <p>The <strong>HDAVAIL</strong> Team</p>
