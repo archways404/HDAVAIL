@@ -6,6 +6,9 @@ import { ThemeProvider } from './context/ThemeContext';
 
 import Index from './pages/index.jsx';
 import Login from './pages/login.jsx';
+import ForgotPass from './pages/forgotpass.jsx';
+import ResetPass from './pages/resetpass.jsx'; // Add ResetPass page
+import SetPass from './pages/setpass.jsx'; // Add SetPass page
 import Logout from './components/Logout.jsx';
 import NotFound from './pages/notFound.jsx';
 import Welcome from './pages/welcome.jsx';
@@ -25,6 +28,18 @@ createRoot(document.getElementById('root')).render(
 					<Route
 						path="/login"
 						element={<Login />}
+					/>
+					<Route
+						path="/resetPassword"
+						element={<ResetPass />}
+					/>
+					<Route
+						path="/setpass"
+						element={<SetPass />}
+					/>
+					<Route
+						path="/forgotpass"
+						element={<ForgotPass />}
 					/>
 					<Route
 						path="/welcome"
