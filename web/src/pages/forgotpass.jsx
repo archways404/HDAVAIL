@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import Layout from '../components/Layout';
 
@@ -85,11 +86,11 @@ function ForgotPass() {
 
 					<p className="text-sm text-center text-gray-600 dark:text-gray-400">
 						Back to{' '}
-						<a
-							href="/login"
+						<Link
+							to="/login"
 							className="text-green-500 hover:underline">
 							Login
-						</a>
+						</Link>
 					</p>
 				</div>
 			</div>

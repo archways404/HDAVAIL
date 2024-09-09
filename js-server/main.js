@@ -32,7 +32,10 @@ app.register(cors, {
 });
 
 app.register(require('./connector'));
+
+// Routes
 app.register(require('./routes/authentication'));
+app.register(require('./routes/status'));
 
 // Middleware
 app.decorate('verifyJWT', async function (request, reply) {
