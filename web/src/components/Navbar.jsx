@@ -1,0 +1,158 @@
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { ThemeContext } from '../context/ThemeContext';
+
+const Navbar = ({ user }) => {
+	const { theme } = useContext(ThemeContext);
+
+	if (!user) {
+		return null; // Don't render the navbar if there's no user
+	}
+
+	const renderLinksForUserType = () => {
+		switch (user.type) {
+			case 'worker':
+				return (
+					<>
+						<li>
+							<Link
+								to="/dashboard"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Dashboard
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/tasks"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								My Tasks
+							</Link>
+						</li>
+					</>
+				);
+			case 'admin':
+				return (
+					<>
+						<li>
+							<Link
+								to="/dashboard"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Dashboard
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/manage-users"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Manage Users
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/invite"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Invite
+							</Link>
+						</li>
+					</>
+				);
+			case 'maintainer':
+				return (
+					<>
+						<li>
+							<Link
+								to="/dashboard"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Dashboard
+							</Link>
+						</li>
+					</>
+				);
+			default:
+				return (
+					<>
+						<li>
+							<Link
+								to="/dashboard"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Dashboard
+							</Link>
+						</li>
+					</>
+				);
+		}
+	};
+
+	return (
+		<nav
+			className={`${
+				theme === 'dark'
+					? 'bg-gray-800 text-white'
+					: 'bg-gray-200 text-gray-900'
+			} p-4`}>
+			<ul className="flex space-x-4">
+				<li>
+					<Link
+						to="/welcome"
+						className={`${
+							theme === 'dark' ? 'hover:text-gray-400' : 'hover:text-gray-600'
+						}`}>
+						Home
+					</Link>
+				</li>
+				<li>
+					<Link
+						to="/settings"
+						className={`${
+							theme === 'dark' ? 'hover:text-gray-400' : 'hover:text-gray-600'
+						}`}>
+						Settings
+					</Link>
+				</li>
+
+				{/* Conditionally render links based on user type */}
+				{renderLinksForUserType()}
+
+				<li>
+					<Link
+						to="/logout"
+						className={`${
+							theme === 'dark' ? 'hover:text-gray-400' : 'hover:text-gray-600'
+						}`}>
+						Logout
+					</Link>
+				</li>
+			</ul>
+		</nav>
+	);
+};
+
+export default Navbar;
