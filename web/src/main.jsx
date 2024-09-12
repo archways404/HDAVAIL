@@ -12,6 +12,7 @@ import SetPass from './pages/setpass.jsx'; // Add SetPass page
 import Logout from './components/Logout.jsx';
 import NotFound from './pages/notFound.jsx';
 import Welcome from './pages/welcome.jsx';
+import Invite from './pages/invite.jsx';
 import AuthWrapper from './components/AuthWrapper';
 
 import './global.css';
@@ -40,6 +41,14 @@ createRoot(document.getElementById('root')).render(
 					<Route
 						path="/forgotpass"
 						element={<ForgotPass />}
+					/>
+					<Route
+						path="/invite"
+						element={
+							<AuthWrapper>
+								<Invite />
+							</AuthWrapper>
+						}
 					/>
 					<Route
 						path="/welcome"

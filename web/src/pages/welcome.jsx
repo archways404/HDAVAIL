@@ -9,7 +9,7 @@ const Welcome = ({ user }) => {
 			<div className="welcome-container">
 				<h1>Welcome, {user.username}!</h1>
 				<p>Your UUID: {user.uuid}</p>
-				<p>Your role: {user.type}</p>
+				<p>Your type: {user.type}</p>
 			</div>
 		</Layout>
 	);
