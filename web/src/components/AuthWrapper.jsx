@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AuthWrapper = ({ children, allowedUserTypes }) => {
 	const [loading, setLoading] = useState(true);
 	const [authenticated, setAuthenticated] = useState(false);
 	const [user, setUser] = useState(null);
-	const navigate = useNavigate();
 
 	useEffect(() => {
 		const checkAuth = async () => {
@@ -36,13 +35,21 @@ const AuthWrapper = ({ children, allowedUserTypes }) => {
 	}
 
 	if (!authenticated) {
-		navigate('/login');
-		return null;
+		return (
+			<Navigate
+				to="/login"
+				replace
+			/>
+		);
 	}
 
 	if (allowedUserTypes && !allowedUserTypes.includes(user.type)) {
-		navigate('/welcome');
-		return null;
+		return (
+			<Navigate
+				to="/welcome"
+				replace
+			/>
+		);
 	}
 
 	return React.cloneElement(children, { user });
