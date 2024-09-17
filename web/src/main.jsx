@@ -45,7 +45,7 @@ createRoot(document.getElementById('root')).render(
 					<Route
 						path="/invite"
 						element={
-							<AuthWrapper>
+							<AuthWrapper allowedUserTypes={['admin']}>
 								<Invite />
 							</AuthWrapper>
 						}
