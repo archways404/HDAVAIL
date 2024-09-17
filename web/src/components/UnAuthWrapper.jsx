@@ -1,26 +1,16 @@
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-
 import LoadingScreen from './LoadingScreen';
 
-const AuthWrapper = ({ children, allowedUserTypes }) => {
+const UnAuthWrapper = ({ children }) => {
 	const { user, loading } = useContext(AuthContext);
 
 	if (loading) {
 		return <LoadingScreen />;
 	}
 
-	if (!user) {
-		return (
-			<Navigate
-				to="/login"
-				replace
-			/>
-		);
-	}
-
-	if (allowedUserTypes && !allowedUserTypes.includes(user.type)) {
+	if (user) {
 		return (
 			<Navigate
 				to="/welcome"
@@ -28,8 +18,7 @@ const AuthWrapper = ({ children, allowedUserTypes }) => {
 			/>
 		);
 	}
-
 	return children;
 };
 
-export default AuthWrapper;
+export default UnAuthWrapper;

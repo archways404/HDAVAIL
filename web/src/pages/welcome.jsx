@@ -1,11 +1,18 @@
-import React from 'react';
-
+// Welcome.jsx
+import React, { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 import Layout from '../components/Layout';
 
-const Welcome = ({ user }) => {
-	console.log(user);
+const Welcome = () => {
+	const { user } = useContext(AuthContext);
+
+	if (!user) {
+		
+		return null;
+	}
+
 	return (
-		<Layout user={user}>
+		<Layout>
 			<div className="welcome-container">
 				<h1>Welcome, {user.username}!</h1>
 				<p>Your UUID: {user.uuid}</p>

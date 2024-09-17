@@ -1,12 +1,14 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
+import { AuthContext } from '../context/AuthContext';
 
-const Navbar = ({ user }) => {
+const Navbar = () => {
 	const { theme } = useContext(ThemeContext);
+	const { user } = useContext(AuthContext);
 
 	if (!user) {
-		return null; // Don't render the navbar if there's no user
+		return null;
 	}
 
 	const renderLinksForUserType = () => {
@@ -34,6 +36,17 @@ const Navbar = ({ user }) => {
 										: 'hover:text-gray-600'
 								}`}>
 								My Tasks
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/invite"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Invite
 							</Link>
 						</li>
 					</>

@@ -1,33 +1,42 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 function Logout() {
 	const navigate = useNavigate();
+	const { setUser } = useContext(AuthContext);
+	const [isLoggingOut, setIsLoggingOut] = useState(true);
 
 	useEffect(() => {
 		const logoutUser = async () => {
 			try {
-				// Make a request to the backend to clear the cookie
 				await axios.get(import.meta.env.VITE_LOGOUT, {
-					withCredentials: true, // Ensures that cookies are included in the request
+					withCredentials: true,
 				});
 
-				// Optionally, clear any client-side user state
-				// (e.g., remove user data from context or localStorage if needed)
-				// localStorage.removeItem('user');
+				setUser(null);
 
-				// Redirect to the login page
-				navigate('/');
+				navigate('/login');
 			} catch (error) {
 				console.error('Error logging out:', error);
+
+				setUser(null);
+				navigate('/login');
+			} finally {
+				setIsLoggingOut(false);
 			}
 		};
 
 		logoutUser();
-	}, [navigate]);
+	}, [navigate, setUser]);
 
-	return <div>Logging you out...</div>;
+	if (isLoggingOut) {
+		return <LoadingScreen />;
+	}
+
+	return null;
 }
 
 export default Logout;
