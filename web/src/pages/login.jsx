@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import Layout from '../components/Layout';
 import DisplayStatus from '../components/DisplayStatus';
+import { AuthContext } from '../context/AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 function Login() {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
+	const [isLoggingIn, setIsLoggingIn] = useState(false);
 	const navigate = useNavigate();
+	const { checkAuth } = useContext(AuthContext);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -22,6 +24,8 @@ function Login() {
 			setError('Please fill in all fields.');
 			return;
 		}
+
+		setIsLoggingIn(true);
 
 		try {
 			const response = await fetch(import.meta.env.VITE_LOGIN, {
@@ -40,14 +44,25 @@ function Login() {
 				throw new Error('Invalid username or password');
 			}
 
-			const result = await response.json();
+			await checkAuth();
+
 			setError('');
 
 			navigate('/welcome');
 		} catch (error) {
 			setError(error.message);
+		} finally {
+			setIsLoggingIn(false);
 		}
 	};
+
+	if (isLoggingIn) {
+		return (
+			<Layout>
+				<LoadingScreen />
+			</Layout>
+		);
+	}
 
 	return (
 		<Layout>
@@ -101,8 +116,13 @@ function Login() {
 
 						<Button
 							type="submit"
-							className="w-full px-4 py-2 mt-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
-							Login
+							disabled={isLoggingIn}
+							className={`w-full px-4 py-2 mt-4 text-white rounded-md transition ${
+								isLoggingIn
+									? 'bg-green-300 cursor-not-allowed'
+									: 'bg-green-500 hover:bg-green-600'
+							}`}>
+							{isLoggingIn ? 'Logging in...' : 'Login'}
 						</Button>
 					</form>
 

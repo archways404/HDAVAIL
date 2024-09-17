@@ -1,11 +1,13 @@
-// Layout.js
+// Layout.jsx
 import React, { useContext } from 'react';
 import ThemeToggle from './ThemeToggle';
-import Navbar from './Navbar'; // Import the Navbar component
+import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
+import { AuthContext } from '../context/AuthContext';
 
-function Layout({ children, user }) {
+function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
+	const { user } = useContext(AuthContext);
 
 	return (
 		<div
@@ -15,7 +17,7 @@ function Layout({ children, user }) {
 					: 'bg-gray-100 text-gray-700'
 			}`}>
 			{/* Navbar */}
-			<Navbar user={user} />
+			<Navbar />
 
 			{/* Theme Toggle */}
 			<div className="absolute top-4 right-4">
