@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AuthWrapper = ({ children }) => {
+const AuthWrapper = ({ children, allowedUserTypes }) => {
 	const [loading, setLoading] = useState(true);
 	const [authenticated, setAuthenticated] = useState(false);
 	const [user, setUser] = useState(null);
@@ -37,6 +37,11 @@ const AuthWrapper = ({ children }) => {
 
 	if (!authenticated) {
 		navigate('/login');
+		return null;
+	}
+
+	if (allowedUserTypes && !allowedUserTypes.includes(user.type)) {
+		navigate('/welcome');
 		return null;
 	}
 
