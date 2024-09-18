@@ -49,6 +49,17 @@ const Navbar = () => {
 								Invite
 							</Link>
 						</li>
+						<li>
+							<Link
+								to="/schedule"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Schedule
+							</Link>
+						</li>
 					</>
 				);
 			case 'admin':
@@ -85,6 +96,17 @@ const Navbar = () => {
 										: 'hover:text-gray-600'
 								}`}>
 								Invite
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/schedule"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Schedule
 							</Link>
 						</li>
 					</>

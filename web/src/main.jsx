@@ -14,6 +14,7 @@ import Logout from './components/Logout.jsx';
 import NotFound from './pages/notFound.jsx';
 import Welcome from './pages/welcome.jsx';
 import Invite from './pages/invite.jsx';
+import Schedule from './pages/schedule';
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
 
@@ -70,6 +71,14 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
 									<Invite />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/schedule"
+							element={
+								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
+									<Schedule />
 								</AuthWrapper>
 							}
 						/>
