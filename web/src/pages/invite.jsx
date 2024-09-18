@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Layout from '../components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { AuthContext } from '../context/AuthContext';
 
-const Invite = ({ user }) => {
+const Invite = () => {
+	const { user } = useContext(AuthContext);
+
 	// Form states
 	const [username, setUsername] = useState('');
 	const [email, setEmail] = useState('');
@@ -36,6 +39,8 @@ const Invite = ({ user }) => {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					// Include authentication token if required
+					// 'Authorization': `Bearer ${user.token}`,
 				},
 				body: JSON.stringify(inviteData),
 			});
@@ -57,7 +62,7 @@ const Invite = ({ user }) => {
 	};
 
 	return (
-		<Layout user={user}>
+		<Layout>
 			<div className="invite-form p-6 max-w-lg mx-auto bg-white dark:bg-gray-900 rounded-lg shadow-md">
 				<h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
 					Send an Invite
