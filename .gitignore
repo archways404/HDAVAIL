@@ -12,3 +12,10 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+/scripts/files
+js-server/.env
+/js-server/node_modules
+/node_modules
+pnpm-lock.yaml
+*.log
+web/.env
