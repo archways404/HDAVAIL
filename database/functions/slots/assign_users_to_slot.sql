@@ -16,4 +16,4 @@ $$ LANGUAGE plpgsql;
 
 -- USAGE
 
-SELECT assign_users_to_slot('SLOT_UUID_HERE', ARRAY['USER_UUID_1', 'USER_UUID_2']);
+SELECT assign_users_to_slot('SLOT_UUID_HERE', ARRAY['USER_UUID_1', 'USER_UUID_2']::UUID[]);
