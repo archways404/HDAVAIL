@@ -11,3 +11,4 @@ $$ LANGUAGE plpgsql;
 -- USAGE
 
 SELECT confirm_slot_trade('OWNER_UUID', 'SLOT_UUID', 'TRADE_WITH_UUID');
+
