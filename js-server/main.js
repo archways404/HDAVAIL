@@ -2,7 +2,9 @@ const fastify = require('fastify');
 const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
+const fastifyStatic = require('@fastify/static');
 const logger = require('./logger');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -12,7 +14,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const app = fastify({
-	logger,
+	logger: false, // Disable Fastify's built-in logger
 });
 
 app.register(cookie);
@@ -36,6 +38,12 @@ app.register(require('./connector'));
 // Routes
 app.register(require('./routes/authentication'));
 app.register(require('./routes/status'));
+app.register(require('./routes/ical'));
+
+app.register(fastifyStatic, {
+	root: path.join(__dirname, './user_files'),
+});
+
 
 // Middleware
 app.decorate('verifyJWT', async function (request, reply) {
