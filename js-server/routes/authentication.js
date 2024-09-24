@@ -12,11 +12,9 @@ async function routes(fastify, options) {
 		const client = await fastify.pg.connect();
 		const user = await login(client, username, password);
 
-		console.log(user);
-
 		const authToken = fastify.jwt.sign(
 			{ uuid: user.uuid, username: user.username, type: user.type },
-			{ expiresIn: '1h' }
+			{ expiresIn: '15m' }
 		);
 
 		reply.setCookie('authToken', authToken, {
@@ -147,12 +145,25 @@ async function routes(fastify, options) {
 		'/protected',
 		{ preValidation: fastify.verifyJWT },
 		async (request, reply) => {
+			const user = request.user;
+			const authToken = fastify.jwt.sign(
+				{ uuid: user.uuid, username: user.username, type: user.type },
+				{ expiresIn: '15m' }
+			);
+
+			reply.setCookie('authToken', authToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				path: '/',
+			});
+
 			return reply.send({
-				message: 'You are authenticated',
-				user: request.user,
+				message: 'You are authenticated and token has been refreshed',
+				user: user,
 			});
 		}
 	);
+
 
 	// Logout route in your server (Fastify)
 	fastify.get('/logout', async (request, reply) => {
