@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 const {
 	getAssignedSlots,
 	generateICSFiles,
@@ -5,12 +8,12 @@ const {
 
 async function routes(fastify, options) {
 	// SERVE THE FILES
-	fastify.get('/ical/:userid', async (request, reply) => {
-		const { userid } = request.params;
+	fastify.get('/ical/:username', async (request, reply) => {
+		const { username } = request.params;
 
-		const filePath = path.join(__dirname, '../user_files', `${userid}.ical`);
+		const filePath = path.join(__dirname, '../user_files', `${username}.ical`);
 		if (fs.existsSync(filePath)) {
-			return reply.sendFile(`${userid}.ical`);
+			return reply.sendFile(`${username}.ical`);
 		} else {
 			return reply.status(404).send({ error: 'File not found' });
 		}
