@@ -1,0 +1,73 @@
+SELECT * FROM users;
+
+-- TEST 1
+
+SELECT * FROM get_unassigned_slots();
+
+SELECT add_user_availability('5e2eba4c-e6d6-4619-818f-0d7e1a0296c2', 'bf652d53-4049-43cd-b00d-cb352b4b1764');
+
+SELECT add_user_availability('ed97be7a-e552-42eb-8e43-3f8886f9b348', 'bf652d53-4049-43cd-b00d-cb352b4b1764');
+
+SELECT * FROM get_users_available_for_slot('bf652d53-4049-43cd-b00d-cb352b4b1764');
+
+SELECT assign_users_to_slot(
+    'bf652d53-4049-43cd-b00d-cb352b4b1764', 
+    ARRAY['5e2eba4c-e6d6-4619-818f-0d7e1a0296c2', 'ed97be7a-e552-42eb-8e43-3f8886f9b348']::UUID[]
+);
+
+SELECT * FROM get_assigned_slots();
+
+SELECT * FROM get_unassigned_slots();
+
+
+
+-- TEST 2
+
+SELECT request_slot_trade('ed97be7a-e552-42eb-8e43-3f8886f9b348', 'bf652d53-4049-43cd-b00d-cb352b4b1764', 'f376cd07-08c7-4a20-9f97-ef6ad3a45450');
+
+SELECT confirm_slot_trade('ed97be7a-e552-42eb-8e43-3f8886f9b348', 'bf652d53-4049-43cd-b00d-cb352b4b1764', 'f376cd07-08c7-4a20-9f97-ef6ad3a45450');
+
+SELECT cancel_slot_trade('ed97be7a-e552-42eb-8e43-3f8886f9b348', 'bf652d53-4049-43cd-b00d-cb352b4b1764', 'f376cd07-08c7-4a20-9f97-ef6ad3a45450');
+
+SELECT * FROM get_trade_requests_by_user('ed97be7a-e552-42eb-8e43-3f8886f9b348');
+
+SELECT * FROM get_pending_trades_for_user('ed97be7a-e552-42eb-8e43-3f8886f9b348');
+
+SELECT * FROM get_pending_trades_for_user('f376cd07-08c7-4a20-9f97-ef6ad3a45450');
+
+SELECT * FROM user_slot_trades;
+
+SELECT * FROM get_confirmed_slot_trades();
+
+CALL execute_trade('ed97be7a-e552-42eb-8e43-3f8886f9b348', 'bf652d53-4049-43cd-b00d-cb352b4b1764', 'f376cd07-08c7-4a20-9f97-ef6ad3a45450');
+
+SELECT * FROM get_assigned_slots();
+
+
+-- REST
+
+
+SELECT * FROM get_assigned_slots();
+
+SELECT * FROM get_unassigned_slots();
+
+SELECT assign_users_to_slot('SLOT_UUID_HERE', ARRAY['USER_UUID_1', 'USER_UUID_2']::UUID[]);
+
+SELECT add_user_availability('USER_UUID', 'SLOT_UUID');
+
+SELECT remove_user_availability('USER_UUID', 'SLOT_UUID');
+
+SELECT request_slot_trade('OWNER_UUID', 'SLOT_UUID', 'TRADE_WITH_UUID');
+
+SELECT confirm_slot_trade('OWNER_UUID', 'SLOT_UUID', 'TRADE_WITH_UUID');
+
+SELECT cancel_slot_trade('OWNER_UUID', 'SLOT_UUID', 'TRADE_WITH_UUID');
+
+SELECT * FROM get_users_available_for_slot('SLOT_UUID_HERE');
+
+SELECT * FROM get_slots_user_is_available_for('USER_UUID_HERE');
+
+SELECT * FROM get_trade_requests_by_user('OWNER_UUID_HERE');
+
+SELECT * FROM get_pending_trades_for_user('USER_UUID_HERE');
+

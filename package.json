@@ -8,10 +8,11 @@
 		"test": "concurrently \"pnpm run dev:js\" \"pnpm run delay && cd js-server && npx jest\""
 	},
 	"devDependencies": {
-		"concurrently": "^8.2.2"
+		"concurrently": "^9.0.1"
 	},
 	"dependencies": {
+		"@fastify/static": "^8.0.1",
 		"axios": "^1.7.7",
-		"ical.js": "^2.0.1"
+		"ical.js": "^2.1.0"
 	}
 }
