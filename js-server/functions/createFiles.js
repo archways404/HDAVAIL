@@ -2,9 +2,20 @@ const fs = require('fs');
 const path = require('path');
 const ics = require('ics');
 
+function groupByUsername(data) {
+	return data.reduce((acc, slot) => {
+		if (!acc[slot.username]) {
+			acc[slot.username] = [];
+		}
+		acc[slot.username].push(slot);
+		return acc;
+	}, {});
+}
+
 async function generateICSFiles(data) {
-	for (const slot of data) {
-		const event = {
+	const groupedData = groupByUsername(data);
+	for (const [username, slots] of Object.entries(groupedData)) {
+		let events = slots.map((slot) => ({
 			start: [
 				new Date(slot.shift_date).getUTCFullYear(),
 				new Date(slot.shift_date).getUTCMonth() + 1,
@@ -22,28 +33,25 @@ async function generateICSFiles(data) {
 			title: slot.shift_type,
 			description: `${slot.shift_type}`,
 			location: slot.shift_type,
-			url: '', // TODO - DIRECT LINK HERE
+			url: 'https://software404.org', // TODO - FIX THE LINK
 			status: 'CONFIRMED',
 			organizer: { name: 'mainframeMAU', email: 'mainframeMAU@gmx.com' },
-		};
-
-		ics.createEvent(event, (error, value) => {
+		}));
+		ics.createEvents(events, (error, value) => {
 			if (error) {
-				console.log(`Error creating event for ${slot.username}:`, error);
+				console.error(`Error creating events for ${username}:`, error);
 				return;
 			}
-
 			const filePath = path.join(
 				__dirname,
-				'../user_files',
-				`${slot.username}.ical`
+				'../user_files/',
+				`${username}.ical`
 			);
-
 			fs.writeFile(filePath, value, (err) => {
 				if (err) {
-					console.error(`Failed to write ICS file for ${slot.username}:`, err);
+					console.error(`Failed to write ICS file for ${username}:`, err);
 				} else {
-					console.log(`ICS file created for ${slot.username} at ${filePath}`);
+					console.log(`ICS file created for ${username} at ${filePath}`);
 				}
 			});
 		});
