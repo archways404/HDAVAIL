@@ -42,6 +42,7 @@ app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+app.register(require('./routes/admin'));
 app.register(require('./routes/status'));
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',

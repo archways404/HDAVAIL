@@ -2,7 +2,9 @@ CREATE OR REPLACE PROCEDURE create_user_if_not_exists(
     p_username VARCHAR(255), 
     p_email VARCHAR(255), 
     p_type VARCHAR(50), 
-    p_reset_token VARCHAR(255)
+    p_reset_token VARCHAR(255),
+    p_first_name VARCHAR(255), 
+    p_last_name VARCHAR(255)
 )
 LANGUAGE plpgsql
 AS $$
@@ -18,8 +20,8 @@ BEGIN
     END IF;
 
     -- Insert the new user if no conflicts were found
-    INSERT INTO users (username, email, type, reset_token)
-    VALUES (p_username, p_email, p_type, p_reset_token);
+    INSERT INTO users (username, email, type, reset_token, first_name, last_name)
+    VALUES (p_username, p_email, p_type, p_reset_token, p_first_name, p_last_name);
 
 END;
 $$;

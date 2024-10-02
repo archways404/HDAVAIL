@@ -18,6 +18,8 @@ import Schedule from './pages/schedule';
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
 import CalendarLink from './pages/calendarlink';
+import ManageUsers from './pages/manageusers';
+import UserDetail from './pages/userdetail';
 
 import './global.css';
 
@@ -72,6 +74,22 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
 									<Invite />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/manage-users"
+							element={
+								<AuthWrapper allowedUserTypes={['admin']}>
+									<ManageUsers />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/user/:uuid"
+							element={
+								<AuthWrapper allowedUserTypes={['admin']}>
+									<UserDetail />
 								</AuthWrapper>
 							}
 						/>
