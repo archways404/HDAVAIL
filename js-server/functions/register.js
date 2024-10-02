@@ -32,11 +32,25 @@ async function registerNewUser(username, email, resetToken) {
 	}
 }
 
-async function createNewUser(client, username, email, type) {
+async function createNewUser(
+	client,
+	username,
+	first_name,
+	last_name,
+	email,
+	type
+) {
 	try {
 		const resetToken = generateResetToken();
-		const query = `CALL create_user_if_not_exists($1, $2, $3, $4)`;
-		await client.query(query, [username, email, type, resetToken]);
+		const query = `CALL create_user_if_not_exists($1, $2, $3, $4, $5, $6)`;
+		await client.query(query, [
+			username,
+			email,
+			type,
+			resetToken,
+			first_name,
+			last_name,
+		]);
 		console.log('User created successfully.');
 		const emailStatus = await registerNewUser(username, email, resetToken);
 		if (emailStatus === 'success') {
