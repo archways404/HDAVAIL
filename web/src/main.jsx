@@ -17,6 +17,7 @@ import Invite from './pages/invite.jsx';
 import Schedule from './pages/schedule';
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
+import CalendarLink from './pages/calendarlink';
 
 import './global.css';
 
@@ -88,6 +89,15 @@ createRoot(document.getElementById('root')).render(
 								<AuthWrapper
 									allowedUserTypes={['admin', 'worker', 'maintainer']}>
 									<Welcome />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/calendarlink"
+							element={
+								<AuthWrapper
+									allowedUserTypes={['admin', 'worker', 'maintainer']}>
+									<CalendarLink />
 								</AuthWrapper>
 							}
 						/>
