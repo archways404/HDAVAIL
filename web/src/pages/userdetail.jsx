@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
 	EnvelopeIcon,
 	UserIcon,
@@ -6,13 +7,16 @@ import {
 } from '@heroicons/react/24/solid';
 import { useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
-import LoadingScreen from '../components/LoadingScreen'; // Import the custom LoadingScreen
+import LoadingScreen from '../components/LoadingScreen';
+import { useToast } from '@/hooks/use-toast';
 
 const UserDetail = () => {
-	const { uuid } = useParams(); // Extract the UUID from the URL
+	const { uuid } = useParams();
 	const [user, setUser] = useState(null);
+	const [email, setEmail] = useState('');
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const { toast } = useToast();
 
 	// Fetch the user data based on UUID
 	useEffect(() => {
@@ -27,6 +31,7 @@ const UserDetail = () => {
 				const data = await response.json();
 				if (data.length > 0) {
 					setUser(data[0]); // Set the first user object from the array
+					setEmail(data[0].email); // Set the email from user data
 				} else {
 					setError('User not found');
 				}
@@ -39,6 +44,52 @@ const UserDetail = () => {
 
 		fetchUser();
 	}, [uuid]);
+
+	const handleResetPassword = async (e) => {
+		e.preventDefault();
+
+		if (!email) {
+			toast({
+				title: 'Error',
+				description: 'Error: Email not found.',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		try {
+			const response = await fetch(import.meta.env.VITE_FORGOTPASS, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				credentials: 'include',
+				body: JSON.stringify({
+					email,
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to send reset link. Please check your email.');
+			}
+
+			toast({
+				title: 'Success',
+				description: 'Password reset link has been sent to your email.',
+				variant: 'success',
+				duration: 3000, // Toast duration in milliseconds
+			});
+
+			setError('');
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
+			setError(error.message);
+		}
+	};
 
 	return (
 		<Layout>
@@ -88,6 +139,9 @@ const UserDetail = () => {
 										Role:{' '}
 										<span className="font-normal capitalize">{user.type}</span>
 									</p>
+								</div>
+								<div className="flex items-center space-x-2">
+									<Button onClick={handleResetPassword}>Reset Password</Button>
 								</div>
 							</div>
 						</div>
