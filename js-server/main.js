@@ -29,6 +29,7 @@ app.register(jwt, {
 	},
 });
 
+// GLOBAL CORS
 app.register(cors, {
 	origin: CORS_ORIGIN,
 	credentials: true,
@@ -36,12 +37,25 @@ app.register(cors, {
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 
+// DATABASE CONNECTION
 app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+app.register(require('./routes/admin'));
+app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
-app.register(require('./routes/ical'));
+app.register(require('./routes/ical'), {
+	hook: 'preHandler',
+	options: {
+		cors: {
+			origin: '*',
+			credentials: false,
+			allowedHeaders: ['Content-Type'],
+			methods: ['GET', 'OPTIONS'],
+		},
+	},
+});
 
 app.register(fastifyStatic, {
 	root: path.join(__dirname, './user_files'),

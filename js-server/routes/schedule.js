@@ -1,43 +1,24 @@
-const { login } = require('../functions/login');
-const { createNewUser } = require('../functions/register');
-const { findUserByResetToken } = require('../functions/register');
-const { userSetNewPassword } = require('../functions/register');
-const { forgotPasswordSendEmail } = require('../functions/register');
+const { createSchedule } = require('../functions/createSchedule');
 
 async function routes(fastify, options) {
-	// LOGIN ROUTE
-	fastify.post('/login', async (request, reply) => {
-		const { username, password } = request.body;
-		console.log(username, password);
-		const client = await fastify.pg.connect();
-		const user = await login(client, username, password);
-
-		const authToken = fastify.jwt.sign(
-			{ uuid: user.uuid, username: user.username, type: user.type },
-			{ expiresIn: '15m' }
-		);
-
-		reply.setCookie('authToken', authToken, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			path: '/',
-		});
-
-		return reply.send({ message: 'Login successful' });
+	fastify.get('/scheduleTemplate', async (request, reply) => {
+		try {
+			const scheduleTemplate = createSchedule();
+			return reply.send(scheduleTemplate);
+		} catch (error) {
+			console.error('Template error:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to crate using template' });
+		}
 	});
 
+	/*
 	// CREAETES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { username, first_name, last_name, email, type } = request.body;
+		const { username, email, type } = request.body;
 		const client = await fastify.pg.connect();
-		const status = await createNewUser(
-			client,
-			username,
-			first_name,
-			last_name,
-			email,
-			type
-		);
+		const status = await createNewUser(client, username, email, type);
 
 		if (status === 'success') {
 			return reply.send({ message: 'User created successfully' });
@@ -171,7 +152,6 @@ async function routes(fastify, options) {
 		}
 	);
 
-
 	// Logout route in your server (Fastify)
 	fastify.get('/logout', async (request, reply) => {
 		// Clear the authToken cookie
@@ -181,7 +161,8 @@ async function routes(fastify, options) {
 		});
 
 		return reply.send({ message: 'Logged out successfully' });
-	});
-};
+  });
+  */
+}
 
 module.exports = routes;

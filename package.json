@@ -13,6 +13,7 @@
 	"dependencies": {
 		"@fastify/static": "^8.0.1",
 		"axios": "^1.7.7",
+		"date-holidays": "^3.23.12",
 		"ical.js": "^2.1.0",
 		"ics": "^3.8.1"
 	}

@@ -1,43 +1,40 @@
-const { login } = require('../functions/login');
-const { createNewUser } = require('../functions/register');
-const { findUserByResetToken } = require('../functions/register');
-const { userSetNewPassword } = require('../functions/register');
-const { forgotPasswordSendEmail } = require('../functions/register');
+const { getUsers } = require('../functions/search');
+const { getUserWithUUID } = require('../functions/search');
 
 async function routes(fastify, options) {
-	// LOGIN ROUTE
-	fastify.post('/login', async (request, reply) => {
-		const { username, password } = request.body;
-		console.log(username, password);
+	fastify.get('/get-accounts', async (request, reply) => {
 		const client = await fastify.pg.connect();
-		const user = await login(client, username, password);
-
-		const authToken = fastify.jwt.sign(
-			{ uuid: user.uuid, username: user.username, type: user.type },
-			{ expiresIn: '15m' }
-		);
-
-		reply.setCookie('authToken', authToken, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			path: '/',
-		});
-
-		return reply.send({ message: 'Login successful' });
+		try {
+			const { type } = request.query;
+			const users = await getUsers(client, type);
+			return reply.send(users);
+		} catch (error) {
+			console.error('Error fetching users:', error.message);
+			return reply.status(500).send({ error: 'Failed to fetch users' });
+		}
 	});
 
+	fastify.get('/get-user', async (request, reply) => {
+		const { uuid } = request.query;
+		if (!uuid) {
+			return reply.status(400).send({ error: 'UUID is required' });
+		}
+		const client = await fastify.pg.connect();
+		try {
+			const user = await getUserWithUUID(client, uuid);
+			return reply.send(user);
+		} catch (error) {
+			console.error('Error fetching user:', error.message);
+			return reply.status(500).send({ error: 'Failed to fetch user' });
+		}
+	});
+
+	/*
 	// CREAETES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { username, first_name, last_name, email, type } = request.body;
+		const { username, email, type } = request.body;
 		const client = await fastify.pg.connect();
-		const status = await createNewUser(
-			client,
-			username,
-			first_name,
-			last_name,
-			email,
-			type
-		);
+		const status = await createNewUser(client, username, email, type);
 
 		if (status === 'success') {
 			return reply.send({ message: 'User created successfully' });
@@ -171,7 +168,6 @@ async function routes(fastify, options) {
 		}
 	);
 
-
 	// Logout route in your server (Fastify)
 	fastify.get('/logout', async (request, reply) => {
 		// Clear the authToken cookie
@@ -181,7 +177,8 @@ async function routes(fastify, options) {
 		});
 
 		return reply.send({ message: 'Logged out successfully' });
-	});
-};
+  });
+  */
+}
 
 module.exports = routes;
