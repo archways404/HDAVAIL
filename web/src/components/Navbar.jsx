@@ -18,39 +18,6 @@ const Navbar = () => {
 					<>
 						<li>
 							<Link
-								to="/dashboard"
-								className={`${
-									theme === 'dark'
-										? 'hover:text-gray-400'
-										: 'hover:text-gray-600'
-								}`}>
-								Dashboard
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/tasks"
-								className={`${
-									theme === 'dark'
-										? 'hover:text-gray-400'
-										: 'hover:text-gray-600'
-								}`}>
-								My Tasks
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/invite"
-								className={`${
-									theme === 'dark'
-										? 'hover:text-gray-400'
-										: 'hover:text-gray-600'
-								}`}>
-								Invite
-							</Link>
-						</li>
-						<li>
-							<Link
 								to="/schedule"
 								className={`${
 									theme === 'dark'
@@ -67,13 +34,24 @@ const Navbar = () => {
 					<>
 						<li>
 							<Link
-								to="/dashboard"
+								to="/invite"
 								className={`${
 									theme === 'dark'
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Dashboard
+								Invite
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/calendarlink"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								CalendarLink
 							</Link>
 						</li>
 						<li>
@@ -85,17 +63,6 @@ const Navbar = () => {
 										: 'hover:text-gray-600'
 								}`}>
 								Manage Users
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/invite"
-								className={`${
-									theme === 'dark'
-										? 'hover:text-gray-400'
-										: 'hover:text-gray-600'
-								}`}>
-								Invite
 							</Link>
 						</li>
 						<li>
@@ -112,22 +79,6 @@ const Navbar = () => {
 					</>
 				);
 			case 'maintainer':
-				return (
-					<>
-						<li>
-							<Link
-								to="/dashboard"
-								className={`${
-									theme === 'dark'
-										? 'hover:text-gray-400'
-										: 'hover:text-gray-600'
-								}`}>
-								Dashboard
-							</Link>
-						</li>
-					</>
-				);
-			default:
 				return (
 					<>
 						<li>

@@ -4,6 +4,7 @@ import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
+import { Toaster } from '@/components/ui/toaster';
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
@@ -26,6 +27,9 @@ function Layout({ children }) {
 
 			{/* Main Content */}
 			{children}
+
+			{/* Toasts */}
+			<Toaster />
 		</div>
 	);
 }

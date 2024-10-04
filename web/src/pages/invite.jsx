@@ -17,6 +17,8 @@ const Invite = () => {
 
 	// Form states
 	const [username, setUsername] = useState('');
+	const [firstName, setFirstName] = useState('');
+	const [lastName, setLastName] = useState('');
 	const [email, setEmail] = useState('');
 	const [role, setRole] = useState('worker'); // default role
 
@@ -30,6 +32,8 @@ const Invite = () => {
 
 		const inviteData = {
 			username: username,
+			first_name: firstName,
+			last_name: lastName,
 			email: email,
 			type: role,
 		};
@@ -39,8 +43,6 @@ const Invite = () => {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					// Include authentication token if required
-					// 'Authorization': `Bearer ${user.token}`,
 				},
 				body: JSON.stringify(inviteData),
 			});
@@ -52,6 +54,8 @@ const Invite = () => {
 			// Reset form and show success message
 			setUsername('');
 			setEmail('');
+			setFirstName('');
+			setLastName('');
 			setRole('worker');
 			setSuccess('Invite sent successfully!');
 			setError(null);
@@ -85,6 +89,41 @@ const Invite = () => {
 							onChange={(e) => setUsername(e.target.value)}
 							required
 							placeholder="Enter username"
+							className="mt-1"
+						/>
+					</div>
+					{/* First Name Field */}
+					<div>
+						<Label
+							htmlFor="firstName"
+							className="text-gray-700 dark:text-gray-300">
+							First Name:
+						</Label>
+						<Input
+							id="firstName"
+							type="text"
+							value={firstName}
+							onChange={(e) => setFirstName(e.target.value)}
+							required
+							placeholder="Enter first name"
+							className="mt-1"
+						/>
+					</div>
+
+					{/* Last Name Field */}
+					<div>
+						<Label
+							htmlFor="lastName"
+							className="text-gray-700 dark:text-gray-300">
+							Last Name:
+						</Label>
+						<Input
+							id="lastName"
+							type="text"
+							value={lastName}
+							onChange={(e) => setLastName(e.target.value)}
+							required
+							placeholder="Enter last name"
 							className="mt-1"
 						/>
 					</div>

@@ -17,6 +17,9 @@ import Invite from './pages/invite.jsx';
 import Schedule from './pages/schedule';
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
+import CalendarLink from './pages/calendarlink';
+import ManageUsers from './pages/manageusers';
+import UserDetail from './pages/userdetail';
 
 import './global.css';
 
@@ -75,6 +78,22 @@ createRoot(document.getElementById('root')).render(
 							}
 						/>
 						<Route
+							path="/manage-users"
+							element={
+								<AuthWrapper allowedUserTypes={['admin']}>
+									<ManageUsers />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/user/:uuid"
+							element={
+								<AuthWrapper allowedUserTypes={['admin']}>
+									<UserDetail />
+								</AuthWrapper>
+							}
+						/>
+						<Route
 							path="/schedule"
 							element={
 								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
@@ -88,6 +107,15 @@ createRoot(document.getElementById('root')).render(
 								<AuthWrapper
 									allowedUserTypes={['admin', 'worker', 'maintainer']}>
 									<Welcome />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/calendarlink"
+							element={
+								<AuthWrapper
+									allowedUserTypes={['admin', 'worker', 'maintainer']}>
+									<CalendarLink />
 								</AuthWrapper>
 							}
 						/>
