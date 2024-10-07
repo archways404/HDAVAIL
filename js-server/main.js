@@ -3,6 +3,7 @@ const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
+const rateLimit = require('@fastify/rate-limit');
 const logger = require('./logger');
 const path = require('path');
 
@@ -37,6 +38,11 @@ app.register(cors, {
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 
+app.register(rateLimit, {
+	max: 150,
+	timeWindow: '1 minute',
+});
+
 // DATABASE CONNECTION
 app.register(require('./connector'));
 
@@ -45,6 +51,7 @@ app.register(require('./routes/authentication'));
 app.register(require('./routes/admin'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
+app.register(require('./routes/webhook'));
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {

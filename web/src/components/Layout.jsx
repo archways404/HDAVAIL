@@ -1,14 +1,26 @@
-// Layout.jsx
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
+import GDPRPopup from '@/components/GDPRpopup';
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
+	const [cookieConsent, setCookieConsent] = useState(null);
+
+	// Check cookie consent on mount
+	useEffect(() => {
+		const consent = localStorage.getItem('cookieConsent');
+		setCookieConsent(consent);
+	}, []);
+
+	const handleCookieDecision = (decision) => {
+		localStorage.setItem('cookieConsent', decision);
+		setCookieConsent(decision);
+	};
 
 	return (
 		<div
@@ -25,8 +37,15 @@ function Layout({ children }) {
 				<ThemeToggle />
 			</div>
 
-			{/* Main Content */}
-			{children}
+			{/* GDPR Popup */}
+			{cookieConsent === null || cookieConsent === 'denied' ? (
+				<GDPRPopup onDecision={handleCookieDecision} />
+			) : (
+				<>
+					{/* Main Content */}
+					{children}
+				</>
+			)}
 
 			{/* Toasts */}
 			<Toaster />

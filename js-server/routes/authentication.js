@@ -6,25 +6,39 @@ const { forgotPasswordSendEmail } = require('../functions/register');
 
 async function routes(fastify, options) {
 	// LOGIN ROUTE
-	fastify.post('/login', async (request, reply) => {
-		const { username, password } = request.body;
-		console.log(username, password);
-		const client = await fastify.pg.connect();
-		const user = await login(client, username, password);
+	fastify.post(
+		'/login',
+		{
+			config: {
+				rateLimit: {
+					max: 5,
+					timeWindow: '15 minutes',
+					keyGenerator: (req) => req.ip,
+				},
+			},
+		},
+		async (request, reply) => {
+			const { username, password } = request.body;
+			const ip = request.ip;
+			console.log(username, password);
+			console.log(ip);
+			const client = await fastify.pg.connect();
+			const user = await login(client, username, password, ip);
 
-		const authToken = fastify.jwt.sign(
-			{ uuid: user.uuid, username: user.username, type: user.type },
-			{ expiresIn: '15m' }
-		);
+			const authToken = fastify.jwt.sign(
+				{ uuid: user.uuid, username: user.username, type: user.type },
+				{ expiresIn: '15m' }
+			);
 
-		reply.setCookie('authToken', authToken, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			path: '/',
-		});
+			reply.setCookie('authToken', authToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				path: '/',
+			});
 
-		return reply.send({ message: 'Login successful' });
-	});
+			return reply.send({ message: 'Login successful' });
+		}
+	);
 
 	// CREAETES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
