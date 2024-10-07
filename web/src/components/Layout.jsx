@@ -4,7 +4,7 @@ import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import GDPRPopup from '@/components/GDPRpopup';
+import GDPRPopup from '@/components/GDPRPopup';
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
