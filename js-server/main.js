@@ -51,6 +51,7 @@ app.register(require('./routes/authentication'));
 app.register(require('./routes/admin'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
+app.register(require('./routes/webhook'));
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {
