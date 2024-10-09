@@ -10,9 +10,10 @@ async function routes(fastify, options) {
 		const loadAvg = os.loadavg();
 		const numCores = os.cpus().length;
 
-		const averageRequestTime = totalRequests
-			? totalProcessingTime / totalRequests
-			: 0;
+const averageRequestTime = totalRequests
+	? (totalProcessingTime / totalRequests).toFixed(2) // Keep two decimal points
+	: 0;
+
 
 		const loadPercentage1Min = (loadAvg[0] / numCores) * 100;
 		const loadPercentage5Min = (loadAvg[1] / numCores) * 100;

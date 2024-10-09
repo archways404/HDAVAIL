@@ -140,10 +140,11 @@ app.addHook('onRequest', async (request, reply) => {
 
 app.addHook('onResponse', async (request, reply) => {
 	const [seconds, nanoseconds] = process.hrtime(request.startTime);
-	const timeInMillis = seconds * 1e3 + nanoseconds * 1e-6;
+	const timeInMillis = seconds * 1000 + nanoseconds / 1e6; // Convert hrtime to milliseconds
 	totalProcessingTime += timeInMillis;
 	inFlightRequests--;
 });
+
 
 app.get('/detailed-status', async (request, reply) => {
 	const memoryUsage = process.memoryUsage();
