@@ -38,6 +38,22 @@ app.register(cors, {
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 
+app.addHook('preParsing', async (request, reply, payload) => {
+	if (request.headers['content-type'] === 'application/json') {
+		let rawBody = '';
+		payload.on('data', (chunk) => {
+			rawBody += chunk;
+		});
+		payload.on('end', () => {
+			try {
+				request.body = JSON.parse(rawBody);
+			} catch (err) {
+				reply.code(400).send({ message: 'Invalid JSON' });
+			}
+		});
+	}
+});
+
 app.register(rateLimit, {
 	max: 150,
 	timeWindow: '1 minute',
@@ -67,6 +83,7 @@ app.register(require('./routes/ical'), {
 app.register(fastifyStatic, {
 	root: path.join(__dirname, './user_files'),
 });
+
 
 // Middleware
 app.decorate('verifyJWT', async function (request, reply) {

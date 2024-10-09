@@ -13,15 +13,20 @@ async function routes(fastify, options) {
 				rateLimit: {
 					max: 5,
 					timeWindow: '15 minutes',
-					keyGenerator: (req) => req.ip,
+					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
 			},
 		},
 		async (request, reply) => {
-			const { username, password } = request.body;
+			const { username, password, deviceId } = request.body;
+
+			// Validate that deviceId is present
+			if (!deviceId) {
+				return reply.status(400).send({ message: 'Device ID is required' });
+			}
+
 			const ip = request.ip;
-			console.log(username, password);
-			console.log(ip);
+			console.log(username, deviceId, ip);
 			const client = await fastify.pg.connect();
 			const user = await login(client, username, password, ip);
 
@@ -184,7 +189,6 @@ async function routes(fastify, options) {
 			});
 		}
 	);
-
 
 	// Logout route in your server (Fastify)
 	fastify.get('/logout', async (request, reply) => {
