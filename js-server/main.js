@@ -5,6 +5,7 @@ const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
 const underPressure = require('@fastify/under-pressure');
 const rateLimit = require('@fastify/rate-limit');
+const os = require('os');
 const logger = require('./logger');
 const path = require('path');
 
@@ -17,6 +18,10 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+let totalRequests = 0;
+let inFlightRequests = 0;
+let totalProcessingTime = 0;
 
 const app = fastify({
 	logger: false,
@@ -69,7 +74,6 @@ app.register(require('./routes/admin'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
 app.register(require('./routes/webhook'));
-app.register(require('./routes/serverinfo'));
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {
@@ -115,11 +119,9 @@ app.register(underPressure, {
 	},
 });
 
-
 app.register(fastifyStatic, {
 	root: path.join(__dirname, './user_files'),
 });
-
 
 // Middleware
 app.decorate('verifyJWT', async function (request, reply) {
@@ -128,6 +130,57 @@ app.decorate('verifyJWT', async function (request, reply) {
 	} catch (err) {
 		reply.send(err);
 	}
+});
+
+app.addHook('onRequest', async (request, reply) => {
+	totalRequests++;
+	inFlightRequests++;
+	request.startTime = process.hrtime();
+});
+
+app.addHook('onResponse', async (request, reply) => {
+	const [seconds, nanoseconds] = process.hrtime(request.startTime);
+	const timeInMillis = seconds * 1e3 + nanoseconds * 1e-6;
+	totalProcessingTime += timeInMillis;
+	inFlightRequests--;
+});
+
+app.get('/detailed-status', async (request, reply) => {
+	const memoryUsage = process.memoryUsage();
+	const totalMemory = os.totalmem();
+	const freeMemory = os.freemem();
+	const loadAvg = os.loadavg();
+	const numCores = os.cpus().length;
+
+	const averageRequestTime = totalRequests
+		? totalProcessingTime / totalRequests
+		: 0;
+
+	const loadPercentage1Min = (loadAvg[0] / numCores) * 100;
+	const loadPercentage5Min = (loadAvg[1] / numCores) * 100;
+	const loadPercentage15Min = (loadAvg[2] / numCores) * 100;
+
+	const detailedMetrics = {
+		totalRequests,
+		inFlightRequests,
+		averageRequestTime: `${averageRequestTime.toFixed(2)} ms`,
+		memory: {
+			totalMemory: `${(totalMemory / 1024 / 1024).toFixed(2)} MB`,
+			freeMemory: `${(freeMemory / 1024 / 1024).toFixed(2)} MB`,
+			usedMemory: `${((totalMemory - freeMemory) / 1024 / 1024).toFixed(2)} MB`,
+			rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+			heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
+			heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+			external: `${(memoryUsage.external / 1024 / 1024).toFixed(2)} MB`,
+		},
+		systemLoad: {
+			'1min': `${loadPercentage1Min.toFixed(1)}%`,
+			'5min': `${loadPercentage5Min.toFixed(1)}%`,
+			'15min': `${loadPercentage15Min.toFixed(1)}%`,
+		},
+	};
+
+	return detailedMetrics;
 });
 
 app.listen({ port: PORT, host: HOST }, async function (err, address) {
