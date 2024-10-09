@@ -3,6 +3,7 @@ const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
+const underPressure = require('@fastify/under-pressure');
 const rateLimit = require('@fastify/rate-limit');
 const logger = require('./logger');
 const path = require('path');
@@ -68,6 +69,7 @@ app.register(require('./routes/admin'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
 app.register(require('./routes/webhook'));
+app.register(require('./routes/serverinfo'));
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {
@@ -79,6 +81,40 @@ app.register(require('./routes/ical'), {
 		},
 	},
 });
+
+app.register(underPressure, {
+	maxEventLoopDelay: 1500, // Tolerance for event loop delay (1.5s)
+	maxHeapUsedBytes: 300 * 1024 * 1024, // Heap memory limit 300MB
+	maxRssBytes: 600 * 1024 * 1024, // Resident Set Size (RSS) 600MB
+	exposeStatusRoute: true, // Expose the route with health info
+	healthCheckInterval: 5000, // Runs health checks every 5 seconds
+	healthCheck: async function () {
+		try {
+			const client = await app.pg.connect();
+			await client.query('SELECT NOW()');
+			client.release();
+			return true; // Health check passed
+		} catch (error) {
+			app.log.error('Health check failed', error);
+			return false; // Health check failed
+		}
+	},
+	customError: function (status, eventLoopDelay, heapUsed, rss) {
+		return {
+			status: 'critical',
+			message: 'Server performance is degraded',
+			eventLoopDelay: `${eventLoopDelay}ms`,
+			heapUsed: `${(heapUsed / 1024 / 1024).toFixed(2)} MB`,
+			rss: `${(rss / 1024 / 1024).toFixed(2)} MB`,
+			uptime: `${process.uptime().toFixed(2)} seconds`,
+			suggestions: [
+				'Consider increasing available memory',
+				'Monitor event loop delay and optimize CPU-heavy tasks',
+			],
+		};
+	},
+});
+
 
 app.register(fastifyStatic, {
 	root: path.join(__dirname, './user_files'),
