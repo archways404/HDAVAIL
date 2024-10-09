@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 import Layout from '../components/Layout';
 import DisplayStatus from '../components/DisplayStatus';
@@ -28,6 +29,12 @@ function Login() {
 		setIsLoggingIn(true);
 
 		try {
+			// Load the fingerprintjs agent
+			const fp = await FingerprintJS.load();
+			// Get the visitor identifier
+			const result = await fp.get();
+			const deviceId = result.visitorId; // This is the unique identifier for the device
+
 			const response = await fetch(import.meta.env.VITE_LOGIN, {
 				method: 'POST',
 				headers: {
@@ -37,6 +44,7 @@ function Login() {
 				body: JSON.stringify({
 					username,
 					password,
+					deviceId,
 				}),
 			});
 
