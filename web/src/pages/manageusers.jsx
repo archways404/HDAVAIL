@@ -35,12 +35,12 @@ const ManageUsers = () => {
 			// Decide which URL to use based on the role
 			const url =
 				role === 'worker'
-					? `${import.meta.env.VITE_FETCH_USERS_W}`
+					? `${import.meta.env.VITE_BASE_ADDR}/get-accounts?type=worker`
 					: role === 'admin'
-					? `${import.meta.env.VITE_FETCH_USERS_A}`
+					? `${import.meta.env.VITE_BASE_ADDR}/get-accounts?type=admin`
 					: role === 'maintainer'
-					? `${import.meta.env.VITE_FETCH_USERS_M}`
-					: `${import.meta.env.VITE_FETCH_USERS}`;
+					? `${import.meta.env.VITE_BASE_ADDR}/get-accounts?type=maintainer`
+					: `${import.meta.env.VITE_BASE_ADDR}/get-accounts`;
 
 			const response = await fetch(url);
 			if (!response.ok) {

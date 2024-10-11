@@ -12,7 +12,7 @@ function Logout() {
 	useEffect(() => {
 		const logoutUser = async () => {
 			try {
-				await axios.get(import.meta.env.VITE_LOGOUT, {
+				await axios.get(import.meta.env.VITE_BASE_ADDR + '/logout', {
 					withCredentials: true,
 				});
 

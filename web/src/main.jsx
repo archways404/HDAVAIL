@@ -20,6 +20,7 @@ import UnAuthWrapper from './components/UnAuthWrapper';
 import CalendarLink from './pages/calendarlink';
 import ManageUsers from './pages/manageusers';
 import UserDetail from './pages/userdetail';
+import ServerInfo from './pages/serverinfo';
 
 import './global.css';
 
@@ -67,6 +68,14 @@ createRoot(document.getElementById('root')).render(
 								<UnAuthWrapper>
 									<ForgotPass />
 								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/serverinfo"
+							element={
+								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
+									<ServerInfo />
+								</AuthWrapper>
 							}
 						/>
 						<Route

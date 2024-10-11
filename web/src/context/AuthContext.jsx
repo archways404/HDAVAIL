@@ -13,9 +13,12 @@ export function AuthProvider({ children }) {
 	const checkAuth = async () => {
 		setLoading(true);
 		try {
-			const response = await axios.get(import.meta.env.VITE_AUTHENTICATED, {
-				withCredentials: true,
-			});
+			const response = await axios.get(
+				import.meta.env.VITE_BASE_ADDR + '/protected',
+				{
+					withCredentials: true,
+				}
+			);
 
 			if (response.data && response.data.user) {
 				setUser(response.data.user);

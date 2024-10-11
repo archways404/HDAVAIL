@@ -14,22 +14,19 @@ function createLogfileIfNotExists() {
 	if (!fs.existsSync(logfilePath)) {
 		fs.writeFileSync(logfilePath, '');
 		console.log(`Log file created: ${logfilePath}`);
-	} else {
-		console.log(`Log file already exists: ${logfilePath}`);
 	}
 
 	return logfilePath;
 }
 
 // Function to write a message to the log file
-function writeToLogfile(ip, action, status, account, reason) {
+function writeToLogfile(deviceid, ip, action, status, account, reason) {
 	const logfilePath = createLogfileIfNotExists();
 	const now = new Date();
 	const date = now.toISOString().split('T')[0];
 	const time = now.toTimeString().split(' ')[0].slice(0, 5);
 
-	const logEntry = `[${date}] [${time}] -> | IP ${ip} | ACTION ${action} | STATUS ${status} | \n ACCOUNT "${account}" | REASON "${reason}"\n`;
-
+	const logEntry = `[${date}] [${time}] -> | DEVICE ID ${deviceid} | IP ${ip} | ACTION ${action} | STATUS ${status} | \n ACCOUNT "${account}" | REASON "${reason}"\n`;
 	try {
 		fs.appendFileSync(logfilePath, logEntry);
 		console.log(`Log entry added: ${logEntry.trim()}`);
@@ -39,7 +36,7 @@ function writeToLogfile(ip, action, status, account, reason) {
 }
 
 // EXAMPLE USE CASE
-// writeToLogfile(ip, 'LOGIN', 'SUCCESS', username, 'Login successful');
-// writeToLogfile(ip, 'LOGIN', 'FAILED', username, error.message);
+// writeToLogfile(deviceId, ip, 'LOGIN', 'SUCCESS', username, 'Login successful');
+// writeToLogfile(deviceId, ip, 'LOGIN', 'FAILED', username, error.message);
 
 module.exports = { createLogfileIfNotExists, writeToLogfile };

@@ -31,17 +31,20 @@ function ResetPass() {
 		}
 
 		try {
-			const response = await fetch(import.meta.env.VITE_RESETPASS, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				credentials: 'include',
-				body: JSON.stringify({
-					token,
-					password,
-				}),
-			});
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/resetPassword',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						token,
+						password,
+					}),
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error('Failed to reset password. Try again.');

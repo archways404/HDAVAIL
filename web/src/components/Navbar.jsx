@@ -76,6 +76,17 @@ const Navbar = () => {
 								Schedule
 							</Link>
 						</li>
+						<li>
+							<Link
+								to="/serverinfo"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Server Info
+							</Link>
+						</li>
 					</>
 				);
 			case 'maintainer':

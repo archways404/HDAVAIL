@@ -23,7 +23,7 @@ const UserDetail = () => {
 		const fetchUser = async () => {
 			try {
 				const response = await fetch(
-					`${import.meta.env.VITE_FETCH_USER}${uuid}`
+					import.meta.env.VITE_BASE_ADDR + '/get-user?uuid=' + uuid
 				);
 				if (!response.ok) {
 					throw new Error('Failed to fetch user details');
@@ -58,16 +58,19 @@ const UserDetail = () => {
 		}
 
 		try {
-			const response = await fetch(import.meta.env.VITE_FORGOTPASS, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				credentials: 'include',
-				body: JSON.stringify({
-					email,
-				}),
-			});
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/forgotPassword',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						email,
+					}),
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error('Failed to send reset link. Please check your email.');

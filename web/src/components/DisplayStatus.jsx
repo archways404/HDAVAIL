@@ -11,7 +11,7 @@ function DisplayStatus() {
 		const fetchStatusMessages = async () => {
 			try {
 				const response = await fetch(
-					`${import.meta.env.VITE_API_URL}/status/active`
+					import.meta.env.VITE_API_URL + '/status/active'
 				);
 				if (!response.ok) {
 					throw new Error('Failed to fetch status messages');
