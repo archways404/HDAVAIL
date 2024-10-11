@@ -39,13 +39,16 @@ const Invite = () => {
 		};
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_INVITE}`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(inviteData),
-			});
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/register',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(inviteData),
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error('Failed to send invite.');

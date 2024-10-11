@@ -35,7 +35,7 @@ function Login() {
 			const result = await fp.get();
 			const deviceId = result.visitorId; // This is the unique identifier for the device
 
-			const response = await fetch(import.meta.env.VITE_LOGIN, {
+			const response = await fetch(import.meta.env.VITE_BASE_ADDR + '/login', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

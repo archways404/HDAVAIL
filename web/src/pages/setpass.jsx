@@ -30,17 +30,20 @@ function SetPass() {
 		}
 
 		try {
-			const response = await fetch(import.meta.env.VITE_SETPASSWORD, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				credentials: 'include',
-				body: JSON.stringify({
-					token,
-					password,
-				}),
-			});
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/setPassword',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						token,
+						password,
+					}),
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error('Failed to set password. Try again.');

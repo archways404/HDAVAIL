@@ -9,7 +9,9 @@ const ServerInfo = () => {
 	// Fetch detailed metrics from the backend
 	const fetchServerData = async () => {
 		try {
-			const response = await fetch(import.meta.env.VITE_DETAILED_STATUS);
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/detailed-status'
+			);
 			const data = await response.json();
 			setServerData(data);
 		} catch (error) {
