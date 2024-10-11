@@ -12,7 +12,13 @@ const path = require('path');
 const { getAssignedSlots } = require('./functions/createFiles');
 const { generateICSFiles } = require('./functions/createFiles');
 
-require('dotenv').config();
+require('dotenv').config({
+	path:
+		process.env.NODE_ENV === 'production'
+			? '.env.production'
+			: '.env.development',
+});
+
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';

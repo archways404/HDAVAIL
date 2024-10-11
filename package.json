@@ -1,14 +1,16 @@
 {
 	"scripts": {
-		"build": "cd web && pnpm install && pnpm run build",
-		"dev:web": "cd web && pnpm install && pnpm run dev",
-		"dev:js": "cd js-server && pnpm install && pnpm run dev",
+		"build": "cd web && pnpm install && cross-env NODE_ENV=production pnpm run build",
+		"dev:web": "cd web && pnpm install && cross-env NODE_ENV=development pnpm run dev",
+		"dev:js": "cd js-server && pnpm install && cross-env NODE_ENV=development pnpm run dev",
 		"dev": "concurrently \"pnpm run dev:web\" \"pnpm run dev:js\"",
+		"start": "cross-env NODE_ENV=production node server.js",
 		"delay": "sleep 10",
 		"test": "concurrently \"pnpm run dev:js\" \"pnpm run delay && cd js-server && npx jest\""
 	},
 	"devDependencies": {
-		"concurrently": "^9.0.1"
+		"concurrently": "^9.0.1",
+		"cross-env": "^7.0.3"
 	},
 	"dependencies": {
 		"@fastify/static": "^8.0.1",
