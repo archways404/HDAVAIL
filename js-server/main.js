@@ -22,6 +22,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 let totalRequests = 0;
 let inFlightRequests = 0;
 let totalProcessingTime = 0;
+const IGNORE_REQUESTS_THRESHOLD = 15; // Number of requests to ignore
 
 const app = fastify({
 	logger: false,
@@ -133,18 +134,23 @@ app.decorate('verifyJWT', async function (request, reply) {
 });
 
 app.addHook('onRequest', async (request, reply) => {
+	// Increment total requests regardless
 	totalRequests++;
-	inFlightRequests++;
-	request.startTime = process.hrtime();
+	if (totalRequests > IGNORE_REQUESTS_THRESHOLD) {
+		// Only track metrics after the 15th request
+		inFlightRequests++;
+		request.startTime = process.hrtime();
+	}
 });
 
 app.addHook('onResponse', async (request, reply) => {
-	const [seconds, nanoseconds] = process.hrtime(request.startTime);
-	const timeInMillis = seconds * 1000 + nanoseconds / 1e6; // Convert hrtime to milliseconds
-	totalProcessingTime += timeInMillis;
-	inFlightRequests--;
+	if (totalRequests > IGNORE_REQUESTS_THRESHOLD) {
+		const [seconds, nanoseconds] = process.hrtime(request.startTime);
+		const timeInMillis = seconds * 1000 + nanoseconds / 1e6; // Convert hrtime to milliseconds
+		totalProcessingTime += timeInMillis;
+		inFlightRequests--;
+	}
 });
-
 
 app.get('/detailed-status', async (request, reply) => {
 	const memoryUsage = process.memoryUsage();
@@ -153,9 +159,10 @@ app.get('/detailed-status', async (request, reply) => {
 	const loadAvg = os.loadavg();
 	const numCores = os.cpus().length;
 
-	const averageRequestTime = totalRequests
-		? totalProcessingTime / totalRequests
-		: 0;
+	const averageRequestTime =
+		totalRequests > IGNORE_REQUESTS_THRESHOLD
+			? totalProcessingTime / (totalRequests - IGNORE_REQUESTS_THRESHOLD)
+			: 0;
 
 	const loadPercentage1Min = (loadAvg[0] / numCores) * 100;
 	const loadPercentage5Min = (loadAvg[1] / numCores) * 100;
@@ -175,9 +182,9 @@ app.get('/detailed-status', async (request, reply) => {
 			external: `${(memoryUsage.external / 1024 / 1024).toFixed(2)} MB`,
 		},
 		systemLoad: {
-			'1min': `${loadPercentage1Min.toFixed(1)}%`,
-			'5min': `${loadPercentage5Min.toFixed(1)}%`,
-			'15min': `${loadPercentage15Min.toFixed(1)}%`,
+			'1min': `${loadPercentage1Min.toFixed(2)}%`,
+			'5min': `${loadPercentage5Min.toFixed(2)}%`,
+			'15min': `${loadPercentage15Min.toFixed(2)}%`,
 		},
 	};
 
@@ -218,21 +225,3 @@ app.addHook('onReady', async () => {
 		throw new Error('PostgreSQL connection is not established');
 	}
 });
-
-
-
-/*
-app.addHook('onReady', async () => {
-	const client = await app.pg.connect();
-	try {
-		const res = await client.query('SELECT NOW()');
-		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
-	} catch (err) {
-		app.log.error('PostgreSQL connection error:', err);
-		throw new Error('PostgreSQL connection is not established');
-	} finally {
-		client.release();
-	}
-});
-*/
-
