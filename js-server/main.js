@@ -6,6 +6,7 @@ const fastifyStatic = require('@fastify/static');
 const underPressure = require('@fastify/under-pressure');
 const rateLimit = require('@fastify/rate-limit');
 const os = require('os');
+const fs = require('fs');
 const logger = require('./logger');
 const path = require('path');
 
@@ -19,11 +20,14 @@ require('dotenv').config({
 			: '.env.development',
 });
 
-
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Read the certificates (replace with your actual paths)
+const key = fs.readFileSync('../certificates/server-key.pem');
+const cert = fs.readFileSync('../certificates/server-cert.pem');
 
 let totalRequests = 0;
 let inFlightRequests = 0;
@@ -32,9 +36,21 @@ const IGNORE_REQUESTS_THRESHOLD = 15; // Number of requests to ignore
 
 const app = fastify({
 	logger: false,
+	https: {
+		key,
+		cert,
+	},
 });
 
-app.register(cookie);
+app.register(cookie, {
+	secret: JWT_SECRET,
+	parseOptions: {
+		httpOnly: true,
+		sameSite: 'None',
+		secure: process.env.NODE_ENV === 'production',
+	},
+});
+
 app.register(jwt, {
 	secret: JWT_SECRET,
 	cookie: {
