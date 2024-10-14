@@ -5,6 +5,7 @@ const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
 const underPressure = require('@fastify/under-pressure');
 const rateLimit = require('@fastify/rate-limit');
+const metrics = require('fastify-metrics'); // Import fastify-metrics
 const os = require('os');
 const fs = require('fs');
 const logger = require('./logger');
@@ -24,15 +25,8 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
-
-// Read the certificates (replace with your actual paths)
 const key = fs.readFileSync('../certificates/server-key.pem');
 const cert = fs.readFileSync('../certificates/server-cert.pem');
-
-let totalRequests = 0;
-let inFlightRequests = 0;
-let totalProcessingTime = 0;
-const IGNORE_REQUESTS_THRESHOLD = 15; // Number of requests to ignore
 
 const app = fastify({
 	logger: false,
@@ -109,39 +103,6 @@ app.register(require('./routes/ical'), {
 	},
 });
 
-app.register(underPressure, {
-	maxEventLoopDelay: 1500, // Tolerance for event loop delay (1.5s)
-	maxHeapUsedBytes: 300 * 1024 * 1024, // Heap memory limit 300MB
-	maxRssBytes: 600 * 1024 * 1024, // Resident Set Size (RSS) 600MB
-	exposeStatusRoute: true, // Expose the route with health info
-	healthCheckInterval: 5000, // Runs health checks every 5 seconds
-	healthCheck: async function () {
-		try {
-			const client = await app.pg.connect();
-			await client.query('SELECT NOW()');
-			client.release();
-			return true; // Health check passed
-		} catch (error) {
-			app.log.error('Health check failed', error);
-			return false; // Health check failed
-		}
-	},
-	customError: function (status, eventLoopDelay, heapUsed, rss) {
-		return {
-			status: 'critical',
-			message: 'Server performance is degraded',
-			eventLoopDelay: `${eventLoopDelay}ms`,
-			heapUsed: `${(heapUsed / 1024 / 1024).toFixed(2)} MB`,
-			rss: `${(rss / 1024 / 1024).toFixed(2)} MB`,
-			uptime: `${process.uptime().toFixed(2)} seconds`,
-			suggestions: [
-				'Consider increasing available memory',
-				'Monitor event loop delay and optimize CPU-heavy tasks',
-			],
-		};
-	},
-});
-
 app.register(fastifyStatic, {
 	root: path.join(__dirname, './user_files'),
 });
@@ -155,62 +116,15 @@ app.decorate('verifyJWT', async function (request, reply) {
 	}
 });
 
-app.addHook('onRequest', async (request, reply) => {
-	// Increment total requests regardless
-	totalRequests++;
-	if (totalRequests > IGNORE_REQUESTS_THRESHOLD) {
-		// Only track metrics after the 15th request
-		inFlightRequests++;
-		request.startTime = process.hrtime();
-	}
-});
-
-app.addHook('onResponse', async (request, reply) => {
-	if (totalRequests > IGNORE_REQUESTS_THRESHOLD) {
-		const [seconds, nanoseconds] = process.hrtime(request.startTime);
-		const timeInMillis = seconds * 1000 + nanoseconds / 1e6; // Convert hrtime to milliseconds
-		totalProcessingTime += timeInMillis;
-		inFlightRequests--;
-	}
-});
-
-app.get('/detailed-status', async (request, reply) => {
-	const memoryUsage = process.memoryUsage();
-	const totalMemory = os.totalmem();
-	const freeMemory = os.freemem();
-	const loadAvg = os.loadavg();
-	const numCores = os.cpus().length;
-
-	const averageRequestTime =
-		totalRequests > IGNORE_REQUESTS_THRESHOLD
-			? totalProcessingTime / (totalRequests - IGNORE_REQUESTS_THRESHOLD)
-			: 0;
-
-	const loadPercentage1Min = (loadAvg[0] / numCores) * 100;
-	const loadPercentage5Min = (loadAvg[1] / numCores) * 100;
-	const loadPercentage15Min = (loadAvg[2] / numCores) * 100;
-
-	const detailedMetrics = {
-		totalRequests,
-		inFlightRequests,
-		averageRequestTime: `${averageRequestTime.toFixed(2)} ms`,
-		memory: {
-			totalMemory: `${(totalMemory / 1024 / 1024).toFixed(2)} MB`,
-			freeMemory: `${(freeMemory / 1024 / 1024).toFixed(2)} MB`,
-			usedMemory: `${((totalMemory - freeMemory) / 1024 / 1024).toFixed(2)} MB`,
-			rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-			heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
-			heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-			external: `${(memoryUsage.external / 1024 / 1024).toFixed(2)} MB`,
-		},
-		systemLoad: {
-			'1min': `${loadPercentage1Min.toFixed(2)}%`,
-			'5min': `${loadPercentage5Min.toFixed(2)}%`,
-			'15min': `${loadPercentage15Min.toFixed(2)}%`,
-		},
-	};
-
-	return detailedMetrics;
+app.register(metrics, {
+	endpoint: '/metrics',
+	blacklist: ['/healthcheck', '/favicon.ico'],
+	metrics: {
+		gauge: { enabled: true },
+		counter: { enabled: true },
+		histogram: { enabled: true },
+		timing: { enabled: true },
+	},
 });
 
 app.listen({ port: PORT, host: HOST }, async function (err, address) {
