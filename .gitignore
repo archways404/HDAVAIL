@@ -21,3 +21,4 @@ pnpm-lock.yaml
 *.log
 web/.env
 /js-server/user_files/*.ical
+*.example

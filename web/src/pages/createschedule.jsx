@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
 	Popover,
 	PopoverTrigger,
@@ -37,7 +37,6 @@ function CreateSchedule() {
 		fetchScheduleData();
 	}, []);
 
-	// Handle month navigation
 	const handlePreviousMonth = () => {
 		setCurrentMonth(
 			new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
