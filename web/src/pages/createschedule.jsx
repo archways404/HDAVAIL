@@ -1,5 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { Button } from '@/components/ui/Button';
+import {
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import Layout from '../components/Layout';
 
 function CreateSchedule() {
@@ -9,20 +16,17 @@ function CreateSchedule() {
 		return null;
 	}
 
-	// Start at the next month
 	const [currentMonth, setCurrentMonth] = useState(() => {
 		const now = new Date();
 		return new Date(now.getFullYear(), now.getMonth() + 1, 1); // Next month
 	});
 	const [scheduleData, setScheduleData] = useState({});
-	const [showUserSchedule, setShowUserSchedule] = useState(false);
 
 	const fetchScheduleData = async () => {
 		try {
 			let url = import.meta.env.VITE_BASE_ADDR + '/scheduleTemplate';
 			const response = await fetch(url);
 			const data = await response.json();
-
 			setScheduleData(data);
 		} catch (error) {
 			console.error('Error fetching schedule data:', error);
@@ -31,7 +35,7 @@ function CreateSchedule() {
 
 	useEffect(() => {
 		fetchScheduleData();
-	}, [showUserSchedule, user.uuid]);
+	}, []);
 
 	// Handle month navigation
 	const handlePreviousMonth = () => {
@@ -46,27 +50,21 @@ function CreateSchedule() {
 		);
 	};
 
-	// Calculate month dates starting on Monday
 	const getMonthDates = (date) => {
 		const year = date.getFullYear();
 		const month = date.getMonth();
-
 		const firstDayOfMonth = new Date(year, month, 1);
 		const lastDayOfMonth = new Date(year, month + 1, 0);
-
 		const dates = [];
 
-		// Get the first Monday before or on the 1st day of the month
 		const startDay = new Date(firstDayOfMonth);
 		const firstDayWeekday = startDay.getDay();
-		const dayOffset = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1; // Adjust for Monday start
+		const dayOffset = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
 		startDay.setDate(startDay.getDate() - dayOffset);
 
-		// Get the last Sunday after the end of the month
 		const endDay = new Date(lastDayOfMonth);
 		endDay.setDate(endDay.getDate() + ((7 - endDay.getDay()) % 7) + 1);
 
-		// Generate all dates between startDay and endDay
 		for (
 			let day = new Date(startDay);
 			day <= endDay;
@@ -74,14 +72,49 @@ function CreateSchedule() {
 		) {
 			dates.push(new Date(day).toISOString().split('T')[0]);
 		}
-
-		// Now shift the dates array to remove the first date if necessary
 		dates.shift();
 
 		return dates;
 	};
 
 	const datesOfMonth = getMonthDates(currentMonth);
+
+	// ** Editing logic: store the editing data in state **
+	const [editEntry, setEditEntry] = useState(null);
+	const handleEditEntry = (date, entry) => {
+		setEditEntry({ date, ...entry });
+	};
+
+	const saveChanges = (date, updatedEntry) => {
+		// Update the specific entry in scheduleData with the changes made in the popover
+		const updatedEntries = scheduleData[date].map((entry) => {
+			// Identify the entry being edited by comparing something unique, like startDate and endDate
+			if (
+				entry.name === updatedEntry.originalName &&
+				entry.startDate === updatedEntry.originalStartDate &&
+				entry.endDate === updatedEntry.originalEndDate
+			) {
+				return {
+					...entry,
+					name: updatedEntry.name,
+					startDate: updatedEntry.startDate,
+					endDate: updatedEntry.endDate,
+				};
+			}
+			return entry;
+		});
+
+		setScheduleData({ ...scheduleData, [date]: updatedEntries });
+	};
+
+	const deleteEntry = (date, entryToDelete) => {
+		// Remove the entry from scheduleData
+		const updatedEntries = scheduleData[date].filter(
+			(entry) => entry !== entryToDelete
+		);
+		setScheduleData({ ...scheduleData, [date]: updatedEntries });
+		setEditEntry(null); // Close popover after deletion
+	};
 
 	// Define the DayColumn component inside CreateSchedule
 	const DayColumn = ({ date, entries }) => {
@@ -98,18 +131,72 @@ function CreateSchedule() {
 				</div>
 				{entries.length > 0 ? (
 					entries.map((entry, index) => (
-						<div
-							key={index}
-							className="bg-gray-700 p-2 rounded mb-2">
-							<div className="text-white font-medium">{entry.name}</div>
-							<div className="text-gray-300">
-								{entry.startDate}-{entry.endDate}
-							</div>
-						</div>
+						<Popover key={index}>
+							<PopoverTrigger asChild>
+								<Button className="bg-gray-700 p-2 rounded mb-2 w-full flex flex-col items-start text-left">
+									{/* Separate name and time on different lines */}
+									<div className="text-white font-medium">{entry.name}</div>
+									<div className="text-gray-300">
+										{entry.startDate} - {entry.endDate}
+									</div>
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="p-4 bg-gray-800">
+								<EditForm
+									entry={entry}
+									onSave={(updatedEntry) => saveChanges(date, updatedEntry)}
+									onDelete={() => deleteEntry(date, entry)}
+								/>
+							</PopoverContent>
+						</Popover>
 					))
 				) : (
 					<div className="text-gray-500">No shifts</div>
 				)}
+			</div>
+		);
+	};
+
+	const EditForm = ({ entry, onSave, onDelete }) => {
+		// Local state for editing values
+		const [localEntry, setLocalEntry] = useState({
+			originalName: entry.name, // Store original name to identify entry later
+			originalStartDate: entry.startDate, // Store original start time to identify entry later
+			originalEndDate: entry.endDate, // Store original end time to identify entry later
+			name: entry.name, // New name value to edit
+			startDate: entry.startDate, // New start time value to edit
+			endDate: entry.endDate, // New end time value to edit
+		});
+
+		return (
+			<div className="flex flex-col space-y-2">
+				<Input
+					value={localEntry.name}
+					onChange={(e) =>
+						setLocalEntry({ ...localEntry, name: e.target.value })
+					}
+					placeholder="Name"
+				/>
+				<Input
+					value={localEntry.startDate}
+					onChange={(e) =>
+						setLocalEntry({ ...localEntry, startDate: e.target.value })
+					}
+					placeholder="Start Time"
+				/>
+				<Input
+					value={localEntry.endDate}
+					onChange={(e) =>
+						setLocalEntry({ ...localEntry, endDate: e.target.value })
+					}
+					placeholder="End Time"
+				/>
+				<Button onClick={() => onSave(localEntry)}>Save</Button>
+				<Button
+					onClick={onDelete}
+					variant="destructive">
+					Delete
+				</Button>
 			</div>
 		);
 	};
@@ -137,6 +224,7 @@ function CreateSchedule() {
 				</button>
 			</div>
 			<div className="container mx-auto p-4 max-w-screen-xl">
+				<Button onClick={() => console.log(scheduleData)}>test</Button>
 				<div className="grid grid-cols-7 gap-4 bg-gray-800 rounded-lg shadow-lg p-6">
 					{datesOfMonth.map((date, index) => (
 						<DayColumn
