@@ -12,13 +12,13 @@ function Logout() {
 	useEffect(() => {
 		const logoutUser = async () => {
 			try {
-				await axios.get(import.meta.env.VITE_BASE_ADDR + '/logout', {
+				await axios.post(import.meta.env.VITE_BASE_ADDR + '/logout', {
 					withCredentials: true,
 				});
 
-				setUser(null);
+				await setUser(null);
 
-				navigate('/login');
+				navigate('/welcome');
 			} catch (error) {
 				console.error('Error logging out:', error);
 
