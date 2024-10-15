@@ -78,6 +78,17 @@ const Navbar = () => {
 						</li>
 						<li>
 							<Link
+								to="/create-schedule"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								create
+							</Link>
+						</li>
+						<li>
+							<Link
 								to="/serverinfo"
 								className={`${
 									theme === 'dark'

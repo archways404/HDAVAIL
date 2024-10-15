@@ -16,7 +16,7 @@ async function routes(fastify, options) {
 
 	fastify.post('/createSchedule', async (request, reply) => {
 		try {
-			console.log('test', test);
+			console.log('req.body', request.body);
 		} catch (error) {
 			console.error('Template error:', error.message);
 			return reply
@@ -28,7 +28,8 @@ async function routes(fastify, options) {
 	fastify.get('/viewSchedule', async (request, reply) => {
 		try {
 			const client = await fastify.pg.connect();
-			const { uuid } = request.params;
+			const { uuid } = request.query;
+			console.log('uuid', uuid);
 			let globalSchedule;
 			if (!uuid) {
 				globalSchedule = await fetchSchedule(client, null);

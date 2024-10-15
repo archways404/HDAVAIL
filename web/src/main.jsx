@@ -21,6 +21,7 @@ import CalendarLink from './pages/calendarlink';
 import ManageUsers from './pages/manageusers';
 import UserDetail from './pages/userdetail';
 import ServerInfo from './pages/serverinfo';
+import CreateSchedule from './pages/createschedule';
 
 import './global.css';
 
@@ -107,6 +108,14 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
 									<Schedule />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/create-schedule"
+							element={
+								<AuthWrapper allowedUserTypes={['admin']}>
+									<CreateSchedule />
 								</AuthWrapper>
 							}
 						/>
