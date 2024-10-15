@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout'; // Assuming you use Layout component
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid'; // For week and day views
+import interactionPlugin from '@fullcalendar/interaction'; // needed for event interactions like dragging and resizing
 import {
 	Popover,
 	PopoverTrigger,
 	PopoverContent,
 } from '@/components/ui/popover'; // Import ShadCN Popover
+import Layout from '../components/Layout';
 
 const CreateSchedule = () => {
-	const [currentMonth, setCurrentMonth] = useState(new Date());
-	const [scheduleData, setScheduleData] = useState({});
+	const [scheduleData, setScheduleData] = useState([]); // Array to store events
 	const [loading, setLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [activeEntry, setActiveEntry] = useState(null); // State to track active entry for editing
+	const [activeEvent, setActiveEvent] = useState(null); // For popover editing
 
 	// Fetch schedule template data for next month
 	useEffect(() => {
@@ -21,12 +24,9 @@ const CreateSchedule = () => {
 					`${import.meta.env.VITE_BASE_ADDR}/scheduleTemplate`
 				);
 				const data = await response.json();
-				setScheduleData(data);
+				const formattedData = formatScheduleData(data);
+				setScheduleData(formattedData);
 				setLoading(false);
-
-				// Set to next month
-				const now = new Date();
-				setCurrentMonth(new Date(now.getFullYear(), now.getMonth() + 1, 1));
 			} catch (error) {
 				console.error('Error fetching schedule template:', error);
 				setLoading(false);
@@ -36,34 +36,44 @@ const CreateSchedule = () => {
 		fetchScheduleTemplate();
 	}, []);
 
-	// Get the dates for the next month
-	const getMonthDates = (date) => {
-		const year = date.getFullYear();
-		const month = date.getMonth();
+	// Format the schedule data for FullCalendar
+	const formatScheduleData = (data) => {
+		let events = [];
+		Object.keys(data).forEach((date) => {
+			data[date].forEach((event) => {
+				events.push({
+					title: event.name,
+					start: `${date}T${event.startDate}`,
+					end: `${date}T${event.endDate}`,
+					extendedProps: {
+						rawData: event,
+					},
+				});
+			});
+		});
+		return events;
+	};
 
-		const firstDayOfMonth = new Date(year, month, 1);
-		const lastDayOfMonth = new Date(year, month + 1, 0);
+	// Handle selecting an event to edit
+	const handleEventClick = (clickInfo) => {
+		setActiveEvent(clickInfo.event);
+	};
 
-		const dates = [];
+	// Handle saving the modified event
+	const handleSaveEvent = () => {
+		const updatedEvents = scheduleData.map((event) =>
+			event.start === activeEvent.start ? { ...event, ...activeEvent } : event
+		);
+		setScheduleData(updatedEvents);
+		setActiveEvent(null); // Close popover
+	};
 
-		// Get the first Monday on or before the first day of the month
-		const startDay = new Date(firstDayOfMonth);
-		startDay.setDate(startDay.getDate() - ((startDay.getDay() + 6) % 7));
-
-		// Get the last Sunday on or after the last day of the month
-		const endDay = new Date(lastDayOfMonth);
-		endDay.setDate(endDay.getDate() + ((7 - endDay.getDay()) % 7));
-
-		// Generate all dates between startDay and endDay
-		for (
-			let day = new Date(startDay);
-			day <= endDay;
-			day.setDate(day.getDate() + 1)
-		) {
-			dates.push(new Date(day).toISOString().split('T')[0]);
-		}
-
-		return dates;
+	// Handle input change for editing event
+	const handleInputChange = (field, value) => {
+		setActiveEvent({
+			...activeEvent,
+			[field]: value,
+		});
 	};
 
 	// Handle submitting the customized schedule
@@ -73,7 +83,7 @@ const CreateSchedule = () => {
 			const response = await fetch(
 				`${import.meta.env.VITE_BASE_ADDR}/createSchedule`,
 				{
-					method: 'POST', // Adjust method if needed
+					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
@@ -92,32 +102,11 @@ const CreateSchedule = () => {
 		}
 	};
 
-	// Group data by date
-	const groupedData = Object.keys(scheduleData).reduce((acc, date) => {
-		acc[date] = scheduleData[date];
-		return acc;
-	}, {});
-
-	// Handle selecting an entry to edit
-	const handleEditEntry = (date, index) => {
-		setActiveEntry({ date, index, ...scheduleData[date][index] });
+	// Set the initial date to the next month
+	const getNextMonth = () => {
+		const now = new Date();
+		return new Date(now.getFullYear(), now.getMonth() + 1, 1); // Next month
 	};
-
-	// Handle input changes in the popover
-	const handleInputChange = (field, value) => {
-		setActiveEntry({ ...activeEntry, [field]: value });
-	};
-
-	// Handle saving an entry after editing
-	const handleSaveEntry = () => {
-		const updatedSchedule = { ...scheduleData };
-		updatedSchedule[activeEntry.date][activeEntry.index] = activeEntry;
-		setScheduleData(updatedSchedule);
-		setActiveEntry(null); // Close the popover after saving
-	};
-
-	// Get the dates for the next month
-	const datesOfMonth = getMonthDates(currentMonth);
 
 	if (loading) {
 		return <p>Loading schedule template...</p>;
@@ -128,10 +117,10 @@ const CreateSchedule = () => {
 			<div className="flex justify-center items-center mb-8 mt-4 space-x-6">
 				<div className="text-center">
 					<div className="text-2xl font-bold text-white">
-						{currentMonth.getFullYear()}
+						{new Date().getFullYear()}
 					</div>
 					<div className="text-lg text-gray-300">
-						{currentMonth.toLocaleString('default', { month: 'long' })}
+						{new Date().toLocaleString('default', { month: 'long' })}
 					</div>
 				</div>
 				<button
@@ -142,23 +131,31 @@ const CreateSchedule = () => {
 				</button>
 			</div>
 			<div className="container mx-auto p-4 max-w-screen-xl">
-				<div className="grid grid-cols-7 gap-4 bg-gray-800 rounded-lg shadow-lg p-6">
-					{datesOfMonth.map((date, index) => (
-						<DayColumn
-							key={index}
-							date={date}
-							entries={groupedData[date] || []}
-							handleEditEntry={handleEditEntry}
-						/>
-					))}
-				</div>
+				<FullCalendar
+					plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+					initialView="dayGridMonth" // Default view
+					initialDate={getNextMonth()} // Set to next month by default
+					firstDay={1} // Make Monday the first day of the week
+					headerToolbar={{
+						left: 'prev,next today',
+						center: 'title',
+						right: 'dayGridMonth,timeGridWeek,timeGridDay',
+					}} // Show buttons for month, week, and day view
+					events={scheduleData}
+					editable={true}
+					selectable={true}
+					eventClick={handleEventClick}
+					allDaySlot={false} // Disable the "all-day" slot
+					slotMinTime="06:00:00" // Start the time grid at 5 AM
+					slotMaxTime="23:00:00" // End the time grid at midnight
+				/>
 			</div>
 
-			{/* Popover for editing entries */}
-			{activeEntry && (
+			{/* Popover for editing events */}
+			{activeEvent && (
 				<Popover
 					open={true}
-					onClose={() => setActiveEntry(null)}>
+					onClose={() => setActiveEvent(null)}>
 					<PopoverContent>
 						<div className="p-4">
 							<h3 className="text-lg font-bold mb-4">Edit Schedule Entry</h3>
@@ -166,8 +163,8 @@ const CreateSchedule = () => {
 								<label className="block mb-2">Name</label>
 								<input
 									type="text"
-									value={activeEntry.name}
-									onChange={(e) => handleInputChange('name', e.target.value)}
+									value={activeEvent.title}
+									onChange={(e) => handleInputChange('title', e.target.value)}
 									className="border border-gray-300 p-2 rounded w-full"
 								/>
 							</div>
@@ -175,10 +172,11 @@ const CreateSchedule = () => {
 								<label className="block mb-2">Start Time</label>
 								<input
 									type="time"
-									value={activeEntry.startDate}
-									onChange={(e) =>
-										handleInputChange('startDate', e.target.value)
-									}
+									value={new Date(activeEvent.start).toLocaleTimeString([], {
+										hour: '2-digit',
+										minute: '2-digit',
+									})}
+									onChange={(e) => handleInputChange('start', e.target.value)}
 									className="border border-gray-300 p-2 rounded w-full"
 								/>
 							</div>
@@ -186,14 +184,17 @@ const CreateSchedule = () => {
 								<label className="block mb-2">End Time</label>
 								<input
 									type="time"
-									value={activeEntry.endDate}
-									onChange={(e) => handleInputChange('endDate', e.target.value)}
+									value={new Date(activeEvent.end).toLocaleTimeString([], {
+										hour: '2-digit',
+										minute: '2-digit',
+									})}
+									onChange={(e) => handleInputChange('end', e.target.value)}
 									className="border border-gray-300 p-2 rounded w-full"
 								/>
 							</div>
 							<button
 								className="mt-4 p-2 bg-blue-600 text-white rounded"
-								onClick={handleSaveEntry}>
+								onClick={handleSaveEvent}>
 								Save
 							</button>
 						</div>
@@ -201,66 +202,6 @@ const CreateSchedule = () => {
 				</Popover>
 			)}
 		</Layout>
-	);
-};
-
-// Local DayColumn component to display and edit entries
-const DayColumn = ({ date, entries, handleEditEntry }) => {
-	return (
-		<div className="bg-gray-700 text-white p-4 rounded shadow-lg">
-			<div className="font-bold mb-2">{date}</div>
-			{entries.length > 0 ? (
-				entries.map((entry, index) => (
-					<Popover key={index}>
-						<PopoverTrigger asChild>
-							<button className="mb-2 w-full text-left">
-								<p>{entry.name}</p>
-								<p>
-									{entry.startDate} - {entry.endDate}
-								</p>
-							</button>
-						</PopoverTrigger>
-						<PopoverContent>
-							<div className="p-4">
-								<h3 className="text-lg font-bold mb-4">Edit Schedule Entry</h3>
-								<div>
-									<label className="block mb-2">Name</label>
-									<input
-										type="text"
-										value={entry.name}
-										onChange={(e) => handleEditEntry(date, index)}
-										className="border border-gray-300 p-2 rounded w-full"
-									/>
-								</div>
-								<div>
-									<label className="block mb-2">Start Time</label>
-									<input
-										type="time"
-										value={entry.startDate}
-										onChange={(e) => handleEditEntry(date, index)}
-										className="border border-gray-300 p-2 rounded w-full"
-									/>
-								</div>
-								<div>
-									<label className="block mb-2">End Time</label>
-									<input
-										type="time"
-										value={entry.endDate}
-										onChange={(e) => handleEditEntry(date, index)}
-										className="border border-gray-300 p-2 rounded w-full"
-									/>
-								</div>
-								<button className="mt-4 p-2 bg-blue-600 text-white rounded">
-									Save
-								</button>
-							</div>
-						</PopoverContent>
-					</Popover>
-				))
-			) : (
-				<p>No entries</p>
-			)}
-		</div>
 	);
 };
 

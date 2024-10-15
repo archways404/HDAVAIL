@@ -11,6 +11,10 @@
 	},
 	"dependencies": {
 		"@fingerprintjs/fingerprintjs": "^4.5.0",
+		"@fullcalendar/daygrid": "^6.1.15",
+		"@fullcalendar/interaction": "^6.1.15",
+		"@fullcalendar/react": "^6.1.15",
+		"@fullcalendar/timegrid": "^6.1.15",
 		"@heroicons/react": "^2.1.5",
 		"@hookform/resolvers": "^3.9.0",
 		"@radix-ui/react-dialog": "^1.1.2",
