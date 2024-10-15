@@ -53,7 +53,7 @@ function generateMonthDays(year, month, totalDays) {
 
 function getDayOfWeek(dateString) {
 	const date = new Date(dateString);
-	const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+	const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 	const dayOfWeek = date.getDay();
 	return daysOfWeek[dayOfWeek];
 }
