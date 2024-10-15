@@ -11,7 +11,7 @@ async function routes(fastify, options) {
 		{
 			config: {
 				rateLimit: {
-					max: 5,
+					max: 15,
 					timeWindow: '15 minutes',
 					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
@@ -47,19 +47,25 @@ async function routes(fastify, options) {
 	fastify.post('/register', async (request, reply) => {
 		const { username, first_name, last_name, email, type } = request.body;
 		const client = await fastify.pg.connect();
-		const status = await createNewUser(
-			client,
-			username,
-			first_name,
-			last_name,
-			email,
-			type
-		);
-
-		if (status === 'success') {
-			return reply.send({ message: 'User created successfully' });
-		} else {
-			return reply.send({ message: 'User creation failed' });
+		try {
+			const status = await createNewUser(
+				client,
+				username,
+				first_name,
+				last_name,
+				email,
+				type
+			);
+			if (status === 'success') {
+				return reply.send({ message: 'User created successfully' });
+			} else {
+				return reply.send({ message: 'User creation failed' });
+			}
+		} catch (error) {
+			console.error(error);
+			return reply.status(500).send({ message: 'Internal server error' });
+		} finally {
+			client.release();
 		}
 	});
 
@@ -151,6 +157,7 @@ async function routes(fastify, options) {
 		try {
 			const status = await forgotPasswordSendEmail(client, email);
 			if (status === 'Invalid or expired token') {
+				console.error('Password reset error: Invalid or expired token');
 				return reply.status(400).send({ message: 'Invalid or expired token' });
 			} else if (status === 'Password is required') {
 				return reply.status(400).send({ message: 'Password is required' });
@@ -177,6 +184,7 @@ async function routes(fastify, options) {
 
 			reply.setCookie('authToken', authToken, {
 				httpOnly: true,
+				sameSite: 'None', // Allow cross-origin cookie clearing
 				secure: process.env.NODE_ENV === 'production',
 				path: '/',
 			});
@@ -194,6 +202,8 @@ async function routes(fastify, options) {
 		reply.clearCookie('authToken', {
 			path: '/',
 			httpOnly: true,
+			sameSite: 'None', // Allow cross-origin cookie clearing
+			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
 		});
 
 		return reply.send({ message: 'Logged out successfully' });
