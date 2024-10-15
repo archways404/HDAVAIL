@@ -12,18 +12,26 @@ function Logout() {
 	useEffect(() => {
 		const logoutUser = async () => {
 			try {
-				await axios.post(import.meta.env.VITE_BASE_ADDR + '/logout', {
-					withCredentials: true,
-				});
+				// Correct the axios post request
+				await axios.post(
+					import.meta.env.VITE_BASE_ADDR + '/logout',
+					{},
+					{
+						withCredentials: true, // Ensure cookies are sent
+					}
+				);
 
+				// Clear user context
 				await setUser(null);
 
-				navigate('/welcome');
+				// Navigate to login after logout
+				navigate('/login');
 			} catch (error) {
 				console.error('Error logging out:', error);
 
+				// Clear user context and navigate to error page in case of failure
 				setUser(null);
-				navigate('/login');
+				navigate('/error');
 			} finally {
 				setIsLoggingOut(false);
 			}
@@ -32,6 +40,7 @@ function Logout() {
 		logoutUser();
 	}, [navigate, setUser]);
 
+	// Show a loading screen while logging out
 	if (isLoggingOut) {
 		return <LoadingScreen />;
 	}

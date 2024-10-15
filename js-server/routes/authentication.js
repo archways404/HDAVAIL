@@ -199,6 +199,7 @@ async function routes(fastify, options) {
 
 	fastify.post('/logout', async (request, reply) => {
 		// Clear the authToken cookie
+
 		reply.clearCookie('authToken', {
 			path: '/',
 			httpOnly: true,
@@ -206,6 +207,7 @@ async function routes(fastify, options) {
 			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
 		});
 
+		/*
 		// Optionally set an expired cookie to override the old one
 		reply.setCookie('authToken', '', {
 			path: '/',
@@ -214,6 +216,7 @@ async function routes(fastify, options) {
 			sameSite: 'None',
 			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
 		});
+		*/
 
 		return reply.send({ message: 'Logged out successfully' });
 	});
