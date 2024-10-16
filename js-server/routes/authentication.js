@@ -18,6 +18,7 @@ async function routes(fastify, options) {
 			},
 		},
 		async (request, reply) => {
+			console.time('loginRequest');
 			const { username, password, deviceId } = request.body;
 			const ip = request.ip;
 
@@ -40,6 +41,7 @@ async function routes(fastify, options) {
 				path: '/',
 			});
 
+			console.timeEnd('loginRequest');
 			return reply.send({ message: 'Login successful' });
 		}
 	);

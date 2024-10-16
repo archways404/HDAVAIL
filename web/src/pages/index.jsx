@@ -8,15 +8,29 @@ function Index() {
 			<div className="absolute bottom-4 right-4">
 				<DisplayStatus />
 			</div>
-			<div className="flex flex-col items-center justify-center min-h-screen">
-				<h1 className="text-4xl font-bold text-green-500 dark:text-green-400 mb-4">
-					Welcome to HDAVAIL
-				</h1>
-				<p className="text-lg mb-6">This is the index page.</p>
-				<div className="flex items-center space-x-4">
+			{/* Flex container for ASCII Art and Button */}
+			<div className="flex flex-col items-center justify-between min-h-screen text-center w-full">
+				{/* ASCII Art - Add mt-12 to move it up */}
+				<pre className="text-2xl font-mono leading-none bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent whitespace-pre max-w-full mt-32">
+					{`
+          @@@  @@@  @@@  @@@  @@@@@@@    @@@@@@   @@@  @@@  @@@  @@@  @@@  @@@  
+          @@@  @@@  @@@  @@@  @@@@@@@@  @@@@@@@@  @@@@ @@@  @@@  @@@  @@@  @@@  
+          @@!  !@@  @@!  @@@  @@!  @@@  @@!  @@@  @@!@!@@@  @@!  @@!  @@!  !@@  
+          !@!  @!!  !@!  @!@  !@!  @!@  !@!  @!@  !@!!@!@!  !@!  !@!  !@!  @!!  
+          @!@@!@!   @!@  !@!  @!@!!@!   @!@  !@!  @!@ !!@!  !!@  !!@   !@@!@!   
+          !!@!!!    !@!  !!!  !!@!@!    !@!  !!!  !@!  !!!  !!!  !!!    @!!!    
+          !!: :!!   !!:  !!!  !!: :!!   !!:  !!!  !!:  !!!  !!:  !!:   !: :!!   
+          :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:!  :!:  :!:  :!:  !:!  
+           ::  :::  ::::: ::  ::   :::  ::::: ::   ::   ::   ::   ::   ::  :::  
+           :   :::   : :  :    :   : :   : :  :   ::    :   :    :     :   ::   
+          `}
+				</pre>
+
+				{/* Centered Button */}
+				<div className="mt-auto mb-16">
 					<Link
 						to="/login"
-						className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition dark:bg-green-600 dark:hover:bg-green-700">
+						className="px-6 py-3 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-2xl hover:from-green-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
 						Login
 					</Link>
 				</div>

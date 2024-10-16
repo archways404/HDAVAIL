@@ -127,6 +127,41 @@ app.register(metrics, {
 	},
 });
 
+/* REQUEST DURATIONS
+const requestDurations = [];
+
+// Middleware to track request duration
+app.addHook('onRequest', (request, reply, done) => {
+	request.startTime = process.hrtime(); // Capture the start time
+	done();
+});
+
+app.addHook('onResponse', (request, reply, done) => {
+	const diff = process.hrtime(request.startTime); // Capture the end time
+	const durationInMs = (diff[0] * 1e9 + diff[1]) / 1e6; // Convert to milliseconds
+
+	// Store the duration along with request details
+	requestDurations.push({
+		method: request.method,
+		url: request.raw.url,
+		statusCode: reply.statusCode,
+		duration: durationInMs.toFixed(2) + 'ms',
+		time: new Date().toISOString(),
+	});
+
+	// Log the request details for debugging
+	console.log(`Request to ${request.raw.url} took ${durationInMs} ms`);
+
+	done();
+});
+
+// Serve request duration data
+app.get('/request-durations', (request, reply) => {
+	reply.send(requestDurations);
+});
+*/
+
+
 app.listen({ port: PORT, host: HOST }, async function (err, address) {
 	if (err) {
 		app.log.error(err);

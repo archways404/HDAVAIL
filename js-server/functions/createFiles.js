@@ -14,6 +14,13 @@ function groupByUsername(data) {
 
 async function generateICSFiles(data) {
 	const groupedData = groupByUsername(data);
+	const userFilesPath = path.join(__dirname, '../user_files/');
+
+	// Check if the user_files directory exists and create it if not
+	if (!fs.existsSync(userFilesPath)) {
+		fs.mkdirSync(userFilesPath, { recursive: true });
+	}
+
 	for (const [username, slots] of Object.entries(groupedData)) {
 		let events = slots.map((slot) => ({
 			start: [
@@ -37,16 +44,13 @@ async function generateICSFiles(data) {
 			status: 'CONFIRMED',
 			organizer: { name: 'mainframeMAU', email: 'mainframeMAU@gmx.com' },
 		}));
+
 		ics.createEvents(events, (error, value) => {
 			if (error) {
 				console.error(`Error creating events for ${username}:`, error);
 				return;
 			}
-			const filePath = path.join(
-				__dirname,
-				'../user_files/',
-				`${username}.ical`
-			);
+			const filePath = path.join(userFilesPath, `${username}.ical`);
 			fs.writeFile(filePath, value, (err) => {
 				if (err) {
 					console.error(`Failed to write ICS file for ${username}:`, err);
