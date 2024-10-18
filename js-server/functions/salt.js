@@ -1,3 +1,4 @@
+/*
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
@@ -22,8 +23,9 @@ async function comparePassword(password, hashedPassword) {
 }
 
 module.exports = { hashPassword, comparePassword };
+*/
 
-/* ARGON2 FOR HASHING (MUCH FASTER)
+/* ARGON2 FOR HASHING (MUCH FASTER) */
 const argon2 = require('argon2');
 require('dotenv').config({
 	path:
@@ -58,4 +60,3 @@ async function comparePassword(password, hashedPassword) {
 }
 
 module.exports = { hashPassword, comparePassword };
-*/

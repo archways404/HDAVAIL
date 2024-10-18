@@ -37,7 +37,7 @@ async function routes(fastify, options) {
 			reply.setCookie('authToken', authToken, {
 				httpOnly: true,
 				sameSite: 'None', // Cross-origin
-				secure: process.env.NODE_ENV === 'production',
+				secure: true, // process.env.NODE_ENV === 'production',
 				path: '/',
 			});
 
@@ -188,7 +188,7 @@ async function routes(fastify, options) {
 			reply.setCookie('authToken', authToken, {
 				httpOnly: true,
 				sameSite: 'None', // Allow cross-origin cookie clearing
-				secure: process.env.NODE_ENV === 'production',
+				secure: true, // process.env.NODE_ENV === 'production',
 				path: '/',
 			});
 
@@ -206,7 +206,7 @@ async function routes(fastify, options) {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'None',
-			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
+			secure: true, // process.env.NODE_ENV === 'production',
 		});
 
 		/*
