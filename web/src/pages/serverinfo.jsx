@@ -36,6 +36,7 @@ const formatValue = (value, unit = '') => {
 
 const ServerInfo = () => {
 	const [serverData, setServerData] = useState(null);
+	const [wsData, setWsData] = useState(null); // State for WebSocket data
 
 	// Fetch detailed metrics from the backend
 	const fetchServerData = async () => {
@@ -48,6 +49,34 @@ const ServerInfo = () => {
 			console.error('Failed to fetch server metrics:', error);
 		}
 	};
+
+	// Initialize WebSocket connection
+	useEffect(() => {
+		const ws = new WebSocket('wss://localhost:3000/wss');
+
+		ws.onopen = () => {
+			console.log('Connected to WebSocket');
+			ws.send('Hello Server'); // Send a message after connection is established
+		};
+
+		ws.onmessage = (event) => {
+			console.log('Message from server:', event.data);
+			setWsData(event.data); // Update state with WebSocket message data
+		};
+
+		ws.onclose = () => {
+			console.log('WebSocket connection closed');
+		};
+
+		ws.onerror = (error) => {
+			console.error('WebSocket error:', error);
+		};
+
+		// Cleanup WebSocket connection on component unmount
+		return () => {
+			ws.close();
+		};
+	}, []);
 
 	useEffect(() => {
 		fetchServerData(); // Initial fetch
@@ -399,6 +428,16 @@ const ServerInfo = () => {
 		<Layout>
 			<div className="server-info flex flex-col items-center w-full min-h-screen p-4">
 				<h1 className="text-3xl font-bold mb-4">Server Status</h1>
+
+				{/* Display WebSocket data */}
+				{wsData && (
+					<div className="websocket-data mb-6 w-full max-w-lg">
+						<h4 className="text-lg font-semibold mb-2">WebSocket Data</h4>
+						<div className="p-4 border border-gray-300 rounded">
+							<pre>{wsData}</pre>
+						</div>
+					</div>
+				)}
 
 				{/* Memory Usage Bar Chart */}
 				<div className="memory-info mb-6 w-full max-w-lg">

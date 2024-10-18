@@ -29,7 +29,6 @@ async function routes(fastify, options) {
 		try {
 			const client = await fastify.pg.connect();
 			const { uuid } = request.query;
-			console.log('uuid', uuid);
 			let globalSchedule;
 			if (!uuid) {
 				globalSchedule = await fetchSchedule(client, null);
