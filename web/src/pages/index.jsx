@@ -10,20 +10,21 @@ function Index() {
 			</div>
 			{/* Flex container for ASCII Art and Button */}
 			<div className="flex flex-col items-center justify-between min-h-screen text-center w-full">
-				{/* ASCII Art - Add mt-12 to move it up */}
-				<pre className="text-2xl font-mono leading-none bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent whitespace-pre max-w-full mt-32">
-					{`
-          @@@  @@@  @@@  @@@  @@@@@@@    @@@@@@   @@@  @@@  @@@  @@@  @@@  @@@  
-          @@@  @@@  @@@  @@@  @@@@@@@@  @@@@@@@@  @@@@ @@@  @@@  @@@  @@@  @@@  
-          @@!  !@@  @@!  @@@  @@!  @@@  @@!  @@@  @@!@!@@@  @@!  @@!  @@!  !@@  
-          !@!  @!!  !@!  @!@  !@!  @!@  !@!  @!@  !@!!@!@!  !@!  !@!  !@!  @!!  
-          @!@@!@!   @!@  !@!  @!@!!@!   @!@  !@!  @!@ !!@!  !!@  !!@   !@@!@!   
-          !!@!!!    !@!  !!!  !!@!@!    !@!  !!!  !@!  !!!  !!!  !!!    @!!!    
-          !!: :!!   !!:  !!!  !!: :!!   !!:  !!!  !!:  !!!  !!:  !!:   !: :!!   
-          :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:!  :!:  :!:  :!:  !:!  
-           ::  :::  ::::: ::  ::   :::  ::::: ::   ::   ::   ::   ::   ::  :::  
-           :   :::   : :  :    :   : :   : :  :   ::    :   :    :     :   ::   
-          `}
+				{/* ASCII Art - Ensured proper spacing and wrapping */}
+				<pre className="text-xl font-mono leading-none bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent whitespace-pre-wrap max-w-full mt-32 px-4">
+					{`                                                      
+@@@  @@@   @@@@@@   @@@@@@@@  @@@@@@@    @@@@@@   @@@       
+@@@  @@@  @@@@@@@@  @@@@@@@@  @@@@@@@@  @@@@@@@@  @@@       
+@@!  !@@  @@!  @@@  @@!       @@!  @@@  @@!  @@@  @@!       
+!@!  @!!  !@!  @!@  !@!       !@   @!@  !@!  @!@  !@!       
+@!@@!@!   @!@  !@!  @!!!:!    @!@!@!@   @!@  !@!  @!!       
+!!@!!!    !@!  !!!  !!!!!:    !!!@!!!!  !@!  !!!  !!!       
+!!: :!!   !!:  !!!  !!:       !!:  !!!  !!:  !!!  !!:       
+:!:  !:!  :!:  !:!  :!:       :!:  !:!  :!:  !:!   :!:      
+ ::  :::  ::::: ::   :: ::::   :: ::::  ::::: ::   :: ::::  
+ :   :::   : :  :   : :: ::   :: : ::    : :  :   : :: : :  
+                                                            
+					`}
 				</pre>
 
 				{/* Centered Button */}
