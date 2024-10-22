@@ -1,5 +1,8 @@
 # Project Name (TBD)
 
+## Summary
+Need to edit this part a bit...
+
 ## Overview
 The project aims to streamline the scheduling process for employees over at the Malmö University Student Helpdesk, but we plan on adding support for ex: Teaching-Assistants that will be included in version 2.0.
 
