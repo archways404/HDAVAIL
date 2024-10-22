@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import Layout from '../components/Layout';
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 function CreateSchedule() {
 	const { user } = useContext(AuthContext);
@@ -116,11 +117,27 @@ function CreateSchedule() {
 	};
 
 	// Define the DayColumn component inside CreateSchedule
-	const DayColumn = ({ date, entries }) => {
+	const DayColumn = ({ date, entries, onCreateEntry }) => {
 		return (
 			<div className="bg-gray-900 p-4 rounded-lg">
-				<div className="text-white text-lg font-bold mb-2">
-					{new Date(date).toLocaleDateString('default', { weekday: 'long' })}
+				<div className="flex justify-between items-center">
+					<div className="text-white text-lg font-bold mb-2">
+						{new Date(date).toLocaleDateString('default', { weekday: 'long' })}
+					</div>
+					{/* Plus button to create a new entry */}
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button className="bg-green-600 text-white p-1 rounded-full shadow-md">
+								<PlusIcon className="h-5 w-5" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="p-4 bg-gray-800">
+							<NewEntryForm
+								date={date}
+								onCreate={onCreateEntry}
+							/>
+						</PopoverContent>
+					</Popover>
 				</div>
 				<div className="text-gray-400 mb-2">
 					{new Date(date).toLocaleDateString('default', {
@@ -154,6 +171,49 @@ function CreateSchedule() {
 				)}
 			</div>
 		);
+	};
+
+	const NewEntryForm = ({ date, onCreate }) => {
+		const [newEntry, setNewEntry] = useState({
+			name: '',
+			startDate: '',
+			endDate: '',
+		});
+
+		const handleCreate = () => {
+			onCreate(date, newEntry);
+			setNewEntry({ name: '', startDate: '', endDate: '' }); // Reset form after submission
+		};
+
+		return (
+			<div className="flex flex-col space-y-2">
+				<Input
+					value={newEntry.name}
+					onChange={(e) => setNewEntry({ ...newEntry, name: e.target.value })}
+					placeholder="Name"
+				/>
+				<Input
+					value={newEntry.startDate}
+					onChange={(e) =>
+						setNewEntry({ ...newEntry, startDate: e.target.value })
+					}
+					placeholder="Start Time"
+				/>
+				<Input
+					value={newEntry.endDate}
+					onChange={(e) =>
+						setNewEntry({ ...newEntry, endDate: e.target.value })
+					}
+					placeholder="End Time"
+				/>
+				<Button onClick={handleCreate}>Create</Button>
+			</div>
+		);
+	};
+
+	const handleCreateEntry = (date, newEntry) => {
+		const updatedEntries = [...(scheduleData[date] || []), newEntry]; // Add the new entry to the existing list
+		setScheduleData({ ...scheduleData, [date]: updatedEntries });
 	};
 
 	const EditForm = ({ entry, onSave, onDelete }) => {
@@ -230,6 +290,7 @@ function CreateSchedule() {
 							key={index}
 							date={date}
 							entries={scheduleData[date] || []}
+							onCreateEntry={handleCreateEntry}
 						/>
 					))}
 				</div>
