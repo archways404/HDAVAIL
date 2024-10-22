@@ -85,28 +85,6 @@ function CreateSchedule() {
 		setEditEntry({ date, ...entry });
 	};
 
-	const saveChanges = (date, updatedEntry) => {
-		// Update the specific entry in scheduleData with the changes made in the popover
-		const updatedEntries = scheduleData[date].map((entry) => {
-			// Identify the entry being edited by comparing something unique, like startDate and endDate
-			if (
-				entry.name === updatedEntry.originalName &&
-				entry.startDate === updatedEntry.originalStartDate &&
-				entry.endDate === updatedEntry.originalEndDate
-			) {
-				return {
-					...entry,
-					name: updatedEntry.name,
-					startDate: updatedEntry.startDate,
-					endDate: updatedEntry.endDate,
-				};
-			}
-			return entry;
-		});
-
-		setScheduleData({ ...scheduleData, [date]: updatedEntries });
-	};
-
 	const deleteEntry = (date, entryToDelete) => {
 		// Remove the entry from scheduleData
 		const updatedEntries = scheduleData[date].filter(
@@ -173,16 +151,25 @@ function CreateSchedule() {
 		);
 	};
 
+	// NewEntryForm Component
 	const NewEntryForm = ({ date, onCreate }) => {
 		const [newEntry, setNewEntry] = useState({
 			name: '',
-			startDate: '',
-			endDate: '',
+			startDate: '', // Time in 'HH:MM'
+			endDate: '', // Time in 'HH:MM'
 		});
 
 		const handleCreate = () => {
-			onCreate(date, newEntry);
-			setNewEntry({ name: '', startDate: '', endDate: '' }); // Reset form after submission
+			// Create the formatted entry with name, startTime, and endTime
+			const formattedEntry = {
+				...newEntry,
+				startDate: newEntry.startDate, // Pass only the time, no need for date
+				endDate: newEntry.endDate,
+			};
+			onCreate(date, formattedEntry); // Call parent handler to save entry
+
+			// Reset form after submission
+			setNewEntry({ name: '', startDate: '', endDate: '' });
 		};
 
 		return (
@@ -192,39 +179,49 @@ function CreateSchedule() {
 					onChange={(e) => setNewEntry({ ...newEntry, name: e.target.value })}
 					placeholder="Name"
 				/>
-				<Input
-					value={newEntry.startDate}
-					onChange={(e) =>
-						setNewEntry({ ...newEntry, startDate: e.target.value })
-					}
-					placeholder="Start Time"
-				/>
-				<Input
-					value={newEntry.endDate}
-					onChange={(e) =>
-						setNewEntry({ ...newEntry, endDate: e.target.value })
-					}
-					placeholder="End Time"
-				/>
+				{/* Start Time Input */}
+				<div className="flex flex-col space-y-1">
+					<label className="text-white">Start Time</label>
+					<Input
+						type="time"
+						value={newEntry.startDate}
+						onChange={(e) =>
+							setNewEntry({ ...newEntry, startDate: e.target.value })
+						}
+					/>
+				</div>
+				{/* End Time Input */}
+				<div className="flex flex-col space-y-1">
+					<label className="text-white">End Time</label>
+					<Input
+						type="time"
+						value={newEntry.endDate}
+						onChange={(e) =>
+							setNewEntry({ ...newEntry, endDate: e.target.value })
+						}
+					/>
+				</div>
 				<Button onClick={handleCreate}>Create</Button>
 			</div>
 		);
 	};
 
+	// Handle creating the new entry
 	const handleCreateEntry = (date, newEntry) => {
-		const updatedEntries = [...(scheduleData[date] || []), newEntry]; // Add the new entry to the existing list
+		// Add the new entry to the list of entries for the date
+		const updatedEntries = [...(scheduleData[date] || []), newEntry];
 		setScheduleData({ ...scheduleData, [date]: updatedEntries });
 	};
 
+	// EditForm Component
 	const EditForm = ({ entry, onSave, onDelete }) => {
-		// Local state for editing values
 		const [localEntry, setLocalEntry] = useState({
-			originalName: entry.name, // Store original name to identify entry later
-			originalStartDate: entry.startDate, // Store original start time to identify entry later
-			originalEndDate: entry.endDate, // Store original end time to identify entry later
-			name: entry.name, // New name value to edit
-			startDate: entry.startDate, // New start time value to edit
-			endDate: entry.endDate, // New end time value to edit
+			originalName: entry.name, // Store original name to identify the entry
+			originalStartTime: entry.startDate, // Store original start time
+			originalEndTime: entry.endDate, // Store original end time
+			name: entry.name, // New name to edit
+			startDate: entry.startTime, // New start time to edit
+			endDate: entry.endTime, // New end time to edit
 		});
 
 		return (
@@ -237,16 +234,18 @@ function CreateSchedule() {
 					placeholder="Name"
 				/>
 				<Input
-					value={localEntry.startDate}
+					type="time"
+					value={localEntry.startTime}
 					onChange={(e) =>
-						setLocalEntry({ ...localEntry, startDate: e.target.value })
+						setLocalEntry({ ...localEntry, startTime: e.target.value })
 					}
 					placeholder="Start Time"
 				/>
 				<Input
-					value={localEntry.endDate}
+					type="time"
+					value={localEntry.endTime}
 					onChange={(e) =>
-						setLocalEntry({ ...localEntry, endDate: e.target.value })
+						setLocalEntry({ ...localEntry, endTime: e.target.value })
 					}
 					placeholder="End Time"
 				/>
@@ -258,6 +257,29 @@ function CreateSchedule() {
 				</Button>
 			</div>
 		);
+	};
+
+	// Update an entry in the scheduleData
+	const saveChanges = (date, updatedEntry) => {
+		const updatedEntries = scheduleData[date].map((entry) => {
+			if (
+				entry.name === updatedEntry.originalName &&
+				entry.startTime === updatedEntry.originalStartTime &&
+				entry.endTime === updatedEntry.originalEndTime
+			) {
+				// Return the updated entry with new times
+				return {
+					...entry,
+					name: updatedEntry.name,
+					startTime: updatedEntry.startTime,
+					endTime: updatedEntry.endTime,
+				};
+			}
+			return entry; // Return unchanged entry if it's not being edited
+		});
+
+		// Update the state with new entries
+		setScheduleData({ ...scheduleData, [date]: updatedEntries });
 	};
 
 	return (
