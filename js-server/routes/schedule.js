@@ -58,11 +58,13 @@ async function routes(fastify, options) {
 				globalSchedule = await handleHDCache(fastify.pg);
 			} else {
 				// Fetch schedule for specific UUID
-				const client = await fastify.pg.connect();
 				try {
-					globalSchedule = await fetchSchedule(client, uuid);
-				} finally {
-					client.release(); // Ensure the client is released
+					globalSchedule = await fetchSchedule(fastify.pg, uuid);
+				} catch (error) {
+					console.error('Template error:', error.message);
+					return reply
+						.status(500)
+						.send({ error: 'Failed to crate using template' });
 				}
 			}
 
