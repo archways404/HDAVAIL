@@ -3,8 +3,27 @@ const { createNewUser } = require('../functions/register');
 const { findUserByResetToken } = require('../functions/register');
 const { userSetNewPassword } = require('../functions/register');
 const { forgotPasswordSendEmail } = require('../functions/register');
+const { startRequest } = require('../functions/processingTime');
+const { endRequest } = require('../functions/processingTime');
+const { calculateRequest } = require('../functions/processingTime');
+const { fetchDataStart } = require('../functions/processingTime');
+const { fetchDataEnd } = require('../functions/processingTime');
 
 async function routes(fastify, options) {
+	// Use hooks to track the time when the response is sent
+	fastify.addHook('onRequest', (request, reply, done) => {
+		startRequest(request);
+		done();
+	});
+
+	fastify.addHook('onResponse', (request, reply, done) => {
+		request.sendTime = Date.now(); // Move sendTime here to capture the actual time the response is completely sent
+		endRequest(request);
+		const times = calculateRequest(request);
+		console.log(`Request stats: ${JSON.stringify(times)}`);
+		done();
+	});
+
 	// LOGIN ROUTE
 	fastify.post(
 		'/login',
@@ -18,7 +37,6 @@ async function routes(fastify, options) {
 			},
 		},
 		async (request, reply) => {
-			console.time('loginRequest');
 			const { username, password, deviceId } = request.body;
 			const ip = request.ip;
 
@@ -27,7 +45,9 @@ async function routes(fastify, options) {
 			}
 
 			const client = await fastify.pg.connect();
+			fetchDataStart(request);
 			const user = await login(client, username, password, ip, deviceId);
+			fetchDataEnd(request);
 
 			const authToken = fastify.jwt.sign(
 				{ uuid: user.uuid, username: user.username, type: user.type },
@@ -41,7 +61,6 @@ async function routes(fastify, options) {
 				path: '/',
 			});
 
-			console.timeEnd('loginRequest');
 			return reply.send({ message: 'Login successful' });
 		}
 	);
