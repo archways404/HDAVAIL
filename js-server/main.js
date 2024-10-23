@@ -15,6 +15,9 @@ const path = require('path');
 const { getAssignedSlots } = require('./functions/createFiles');
 const { generateICSFiles } = require('./functions/createFiles');
 
+const { updateHDCache } = require('./functions/cache');
+const { handleHDCache } = require('./functions/cache');
+
 require('dotenv').config({
 	path:
 		process.env.NODE_ENV === 'production'
@@ -194,12 +197,14 @@ wss.on('connection', (ws) => {
 	});
 });
 
-
 app.addHook('onReady', async () => {
 	const client = await app.pg.connect();
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
+
+		// Populate the cache on server boot
+		await updateHDCache(client); // <-- Populate cache with data at boot
 
 		await client.query('LISTEN slots_change');
 		await client.query('LISTEN user_slots_change');
@@ -209,12 +214,18 @@ app.addHook('onReady', async () => {
 				console.log('Received notification from slots:', msg.payload);
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
+
+				// Optionally update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 
 			if (msg.channel === 'user_slots_change') {
 				console.log('Received notification from user_slots:', msg.payload);
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
+
+				// Optionally update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
 	} catch (err) {
