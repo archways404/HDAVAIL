@@ -1,0 +1,30 @@
+tmux new -s web
+pnpm run dev
+
+Ctrl + B, D
+
+tmux attach -t web
+
+tmux ls
+
+tmux kill-session -t web
+
+
+
+
+pm2 start pnpm --name js-server -- run prod
+
+pm2 list
+
+pm2 logs js-server
+
+pm2 stop js-server
+pm2 start js-server
+
+
+pm2 logs --lines 100
+
+
+
+pm2 startup
+pm2 save
