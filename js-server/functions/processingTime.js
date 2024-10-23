@@ -31,26 +31,47 @@ function fetchDataEnd(request) {
 }
 
 function calculateRequest(request) {
-	const totalResponseTime = request.sendTime - request.startTime;
-	const dbFetchTime = request.dbFetchTime;
-	const processingTime = request.processingTime - request.dbFetchTime;
 
-	console.log('Data fetching time:', dbFetchTime, 'ms');
-	console.log('Request processing time:', processingTime, 'ms');
-	console.log('Total response time:', totalResponseTime, 'ms');
+	if (!request.dbFetchTime) {
+		const totalResponseTime = request.sendTime - request.startTime;
+		const processingTime = request.processingTime;
 
-	const requestData = {
-		method: request.method,
-		endpoint: request.endpoint,
-		totalResponseTime,
-		processingTime,
-		dbFetchTime,
-		timestamp: new Date(),
-	};
+		console.log('Request processing time:', processingTime, 'ms');
+		console.log('Total response time:', totalResponseTime, 'ms');
 
-	logRequestData(requestData);
+		const requestData = {
+			method: request.method,
+			endpoint: request.endpoint,
+			totalResponseTime,
+			processingTime,
+			timestamp: new Date(),
+		};
 
-	return requestData;
+		logRequestData(requestData);
+
+		return requestData;
+	} else {
+		const totalResponseTime = request.sendTime - request.startTime;
+		const dbFetchTime = request.dbFetchTime;
+		const processingTime = request.processingTime - request.dbFetchTime;
+
+		console.log('Data fetching time:', dbFetchTime, 'ms');
+		console.log('Request processing time:', processingTime, 'ms');
+		console.log('Total response time:', totalResponseTime, 'ms');
+
+		const requestData = {
+			method: request.method,
+			endpoint: request.endpoint,
+			totalResponseTime,
+			processingTime,
+			dbFetchTime,
+			timestamp: new Date(),
+		};
+
+		logRequestData(requestData);
+
+		return requestData;
+	}
 }
 
 module.exports = {
