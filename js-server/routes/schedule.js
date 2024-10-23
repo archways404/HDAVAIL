@@ -47,25 +47,23 @@ async function routes(fastify, options) {
 		}
 	});
 
+	// View Schedule Route
 	fastify.get('/viewSchedule', async (request, reply) => {
 		try {
 			const { uuid } = request.query;
 			let globalSchedule;
 
 			if (!uuid) {
-				// Check if the schedule is already cached
+				// Use the cache-handling function
 				globalSchedule = await handleHDCache(fastify.pg);
-
-				// If the cache is empty, fetch the data and cache it
-				if (!globalSchedule) {
-					const client = await fastify.pg.connect();
-					globalSchedule = await updateHDCache(client);
-				}
 			} else {
-				// If UUID is provided, fetch the specific schedule
+				// Fetch schedule for specific UUID
 				const client = await fastify.pg.connect();
-				globalSchedule = await fetchSchedule(client, uuid);
-				client.release();
+				try {
+					globalSchedule = await fetchSchedule(client, uuid);
+				} finally {
+					client.release(); // Ensure the client is released
+				}
 			}
 
 			return reply.send(globalSchedule);
@@ -74,7 +72,6 @@ async function routes(fastify, options) {
 			return reply.status(500).send({ error: 'Failed to fetch schedule' });
 		}
 	});
-
 }
 
 module.exports = routes;
