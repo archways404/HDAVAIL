@@ -4,9 +4,9 @@ const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
 const underPressure = require('@fastify/under-pressure');
-const WebSocket = require('ws'); // Import the ws library
+const WebSocket = require('ws');
 const rateLimit = require('@fastify/rate-limit');
-const metrics = require('fastify-metrics'); // Import fastify-metrics
+const metrics = require('fastify-metrics');
 const os = require('os');
 const fs = require('fs');
 const logger = require('./logger');
@@ -89,6 +89,7 @@ app.register(require('./connector'));
 // Routes
 app.register(require('./routes/authentication'));
 app.register(require('./routes/admin'));
+app.register(require('./routes/statistics'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
 app.register(require('./routes/webhook'));
@@ -192,31 +193,6 @@ wss.on('connection', (ws) => {
 		console.error('WebSocket error:', error);
 	});
 });
-
-const closeApp = async () => {
-	try {
-		console.log('Shutting down server gracefully...');
-
-		// Close Fastify instance (this will stop accepting new connections)
-		await app.close();
-		console.log('Fastify server closed.');
-
-		// Close PostgreSQL connection
-		if (app.pg) {
-			await app.pg.end();
-			console.log('PostgreSQL connection closed.');
-		}
-
-		process.exit(0); // Exit successfully
-	} catch (err) {
-		console.error('Error during shutdown:', err);
-		process.exit(1); // Exit with failure code
-	}
-};
-
-process.on('SIGTERM', closeApp);
-process.on('SIGINT', closeApp);
-
 
 
 app.addHook('onReady', async () => {
