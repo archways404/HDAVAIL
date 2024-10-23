@@ -23,8 +23,8 @@ function fetchDataEnd(request) {
 
 function calculateRequest(request) {
 	const totalResponseTime = request.sendTime - request.startTime;
-	const processingTime = request.processingTime;
 	const dbFetchTime = request.dbFetchTime;
+	const processingTime = request.processingTime - request.dbFetchTime;
 
 	console.log('Total response time:', totalResponseTime, 'ms');
 	console.log('Request processing time:', processingTime, 'ms');
@@ -36,9 +36,8 @@ function calculateRequest(request) {
 	);
 
 	return {
-		processingTime,
 		totalResponseTime,
-		timeToSend: totalResponseTime - processingTime,
+		processingTime,
 		dbFetchTime,
 	};
 }
