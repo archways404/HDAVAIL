@@ -22,3 +22,6 @@ pnpm-lock.yaml
 web/.env
 /js-server/user_files/*.ical
 *.example
+js-server/.env.development.example
+js-server/.env.development.example
+js-server/.env.production.example

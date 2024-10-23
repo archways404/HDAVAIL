@@ -17,8 +17,12 @@ async function getLoginInformation(client, username) {
 
 async function login(client, username, password, ip, deviceid) {
 	try {
+		console.time('Database Query');
 		const user = await getLoginInformation(client, username);
+		console.timeEnd('Database Query');
+		console.time('Check Password');
 		const isPasswordValid = await comparePassword(password, user.password);
+		console.timeEnd('Check Password');
 
 		if (!isPasswordValid) {
 			throw new Error('Incorrect password');

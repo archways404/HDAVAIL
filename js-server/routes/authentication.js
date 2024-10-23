@@ -3,8 +3,26 @@ const { createNewUser } = require('../functions/register');
 const { findUserByResetToken } = require('../functions/register');
 const { userSetNewPassword } = require('../functions/register');
 const { forgotPasswordSendEmail } = require('../functions/register');
+const { startRequest } = require('../functions/processingTime');
+const { endRequest } = require('../functions/processingTime');
+const { calculateRequest } = require('../functions/processingTime');
+const { fetchDataStart } = require('../functions/processingTime');
+const { fetchDataEnd } = require('../functions/processingTime');
 
 async function routes(fastify, options) {
+	fastify.addHook('onRequest', (request, reply, done) => {
+		startRequest(request);
+		done();
+	});
+
+	fastify.addHook('onResponse', (request, reply, done) => {
+		request.sendTime = Date.now();
+		endRequest(request);
+		const times = calculateRequest(request);
+		console.log(`Request stats: ${JSON.stringify(times)}`);
+		done();
+	});
+
 	// LOGIN ROUTE
 	fastify.post(
 		'/login',
@@ -26,7 +44,12 @@ async function routes(fastify, options) {
 			}
 
 			const client = await fastify.pg.connect();
+
+			fetchDataStart(request);
+
 			const user = await login(client, username, password, ip, deviceId);
+
+			fetchDataEnd(request);
 
 			const authToken = fastify.jwt.sign(
 				{ uuid: user.uuid, username: user.username, type: user.type },
@@ -35,8 +58,8 @@ async function routes(fastify, options) {
 
 			reply.setCookie('authToken', authToken, {
 				httpOnly: true,
-				sameSite: 'None', // Cross-origin
-				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'None',
+				secure: true,
 				path: '/',
 			});
 
@@ -44,11 +67,13 @@ async function routes(fastify, options) {
 		}
 	);
 
-	// CREAETES A NEW USER AND SENDS AN INVITE VIA EMAIL
+	// CREATES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
 		const { username, first_name, last_name, email, type } = request.body;
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const status = await createNewUser(
 				client,
 				username,
@@ -57,6 +82,9 @@ async function routes(fastify, options) {
 				email,
 				type
 			);
+
+			fetchDataEnd(request);
+
 			if (status === 'success') {
 				return reply.send({ message: 'User created successfully' });
 			} else {
@@ -73,10 +101,14 @@ async function routes(fastify, options) {
 	// VERIFIES THAT THE SET PASSWORD LINK (TOKEN) IS VALID
 	fastify.get('/setPassword', async (request, reply) => {
 		const { token } = request.query;
-		console.log(token);
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const user = await findUserByResetToken(client, token);
+
+			fetchDataEnd(request);
+
 			if (!user) {
 				return reply.status(400).send({ message: 'Invalid or expired token' });
 			}
@@ -95,7 +127,12 @@ async function routes(fastify, options) {
 		const password = request.body.password;
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const status = await userSetNewPassword(client, token, password);
+
+			fetchDataEnd(request);
+
 			if (status === 'Invalid or expired token') {
 				return reply.status(400).send({ message: 'Invalid or expired token' });
 			} else if (status === 'Password is required') {
@@ -114,10 +151,14 @@ async function routes(fastify, options) {
 	// VERIFIES THE PASSWORD RESET LINK (TOKEN) IS VALID
 	fastify.get('/resetPassword', async (request, reply) => {
 		const { token } = request.query;
-		console.log(token);
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const user = await findUserByResetToken(client, token);
+
+			fetchDataEnd(request);
+
 			if (!user) {
 				return reply.status(400).send({ message: 'Invalid or expired token' });
 			}
@@ -135,7 +176,12 @@ async function routes(fastify, options) {
 		const { token, password } = request.body;
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const status = await userSetNewPassword(client, token, password);
+
+			fetchDataEnd(request);
+
 			if (status === 'Invalid or expired token') {
 				return reply.status(400).send({ message: 'Invalid or expired token' });
 			} else if (status === 'Password is required') {
@@ -156,7 +202,12 @@ async function routes(fastify, options) {
 		const email = request.body.email;
 		const client = await fastify.pg.connect();
 		try {
+			fetchDataStart(request);
+
 			const status = await forgotPasswordSendEmail(client, email);
+
+			fetchDataEnd(request);
+
 			if (status === 'Invalid or expired token') {
 				console.error('Password reset error: Invalid or expired token');
 				return reply.status(400).send({ message: 'Invalid or expired token' });
@@ -185,8 +236,8 @@ async function routes(fastify, options) {
 
 			reply.setCookie('authToken', authToken, {
 				httpOnly: true,
-				sameSite: 'None', // Allow cross-origin cookie clearing
-				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'None',
+				secure: true,
 				path: '/',
 			});
 
@@ -198,25 +249,12 @@ async function routes(fastify, options) {
 	);
 
 	fastify.post('/logout', async (request, reply) => {
-		// Clear the authToken cookie
-
 		reply.clearCookie('authToken', {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'None',
-			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
+			secure: true,
 		});
-
-		/*
-		// Optionally set an expired cookie to override the old one
-		reply.setCookie('authToken', '', {
-			path: '/',
-			httpOnly: true,
-			expires: new Date(0), // Set to a past date to force expiry
-			sameSite: 'None',
-			secure: process.env.NODE_ENV === 'production', // Ensure it's only sent over HTTPS
-		});
-		*/
 
 		return reply.send({ message: 'Logged out successfully' });
 	});

@@ -4,8 +4,9 @@ const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
 const underPressure = require('@fastify/under-pressure');
+const WebSocket = require('ws');
 const rateLimit = require('@fastify/rate-limit');
-const metrics = require('fastify-metrics'); // Import fastify-metrics
+const metrics = require('fastify-metrics');
 const os = require('os');
 const fs = require('fs');
 const logger = require('./logger');
@@ -13,6 +14,9 @@ const path = require('path');
 
 const { getAssignedSlots } = require('./functions/createFiles');
 const { generateICSFiles } = require('./functions/createFiles');
+
+const { updateHDCache } = require('./functions/cache');
+const { handleHDCache } = require('./functions/cache');
 
 require('dotenv').config({
 	path:
@@ -88,6 +92,7 @@ app.register(require('./connector'));
 // Routes
 app.register(require('./routes/authentication'));
 app.register(require('./routes/admin'));
+app.register(require('./routes/statistics'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
 app.register(require('./routes/webhook'));
@@ -127,6 +132,40 @@ app.register(metrics, {
 	},
 });
 
+/* REQUEST DURATIONS
+const requestDurations = [];
+
+// Middleware to track request duration
+app.addHook('onRequest', (request, reply, done) => {
+	request.startTime = process.hrtime(); // Capture the start time
+	done();
+});
+
+app.addHook('onResponse', (request, reply, done) => {
+	const diff = process.hrtime(request.startTime); // Capture the end time
+	const durationInMs = (diff[0] * 1e9 + diff[1]) / 1e6; // Convert to milliseconds
+
+	// Store the duration along with request details
+	requestDurations.push({
+		method: request.method,
+		url: request.raw.url,
+		statusCode: reply.statusCode,
+		duration: durationInMs.toFixed(2) + 'ms',
+		time: new Date().toISOString(),
+	});
+
+	// Log the request details for debugging
+	console.log(`Request to ${request.raw.url} took ${durationInMs} ms`);
+
+	done();
+});
+
+// Serve request duration data
+app.get('/request-durations', (request, reply) => {
+	reply.send(requestDurations);
+});
+*/
+
 app.listen({ port: PORT, host: HOST }, async function (err, address) {
 	if (err) {
 		app.log.error(err);
@@ -134,11 +173,38 @@ app.listen({ port: PORT, host: HOST }, async function (err, address) {
 	}
 });
 
+// Move WebSocket setup outside app.listen
+const wss = new WebSocket.Server({ server: app.server });
+
+// Listen for WebSocket connections
+wss.on('connection', (ws) => {
+	console.log('Client connected via WebSocket');
+
+	// Handle WebSocket messages
+	ws.on('message', (message) => {
+		console.log('Received message:', message);
+		ws.send(`Echo: ${message}`);
+	});
+
+	// Handle WebSocket disconnection
+	ws.on('close', () => {
+		console.log('WebSocket client disconnected');
+	});
+
+	// Handle WebSocket errors
+	ws.on('error', (error) => {
+		console.error('WebSocket error:', error);
+	});
+});
+
 app.addHook('onReady', async () => {
 	const client = await app.pg.connect();
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
+
+		// Populate the cache on server boot
+		await updateHDCache(client); // <-- Populate cache with data at boot
 
 		await client.query('LISTEN slots_change');
 		await client.query('LISTEN user_slots_change');
@@ -148,12 +214,18 @@ app.addHook('onReady', async () => {
 				console.log('Received notification from slots:', msg.payload);
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
+
+				// Optionally update the cache when slots change
+				// await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 
 			if (msg.channel === 'user_slots_change') {
 				console.log('Received notification from user_slots:', msg.payload);
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
+
+				// Optionally update the cache when slots change
+				// await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
 	} catch (err) {

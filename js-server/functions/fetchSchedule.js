@@ -1,14 +1,8 @@
-async function fetchSchedule(client, uuid) {
+async function fetchSchedule(pg, uuid) {
+	const client = await pg.connect();
 	try {
-		let query;
-		let schedule;
-		if (uuid != null) {
-			query = `SELECT * FROM get_user_slots($1)`;
-			schedule = await client.query(query, [uuid]);
-		} else {
-			query = `SELECT * FROM get_user_slots()`;
-			schedule = await client.query(query);
-		}
+		let query = `SELECT * FROM get_user_slots($1)`;
+		let schedule = await client.query(query, [uuid]);
 		return schedule.rows;
 	} catch (error) {
 		console.error('Error creating user:', error.message);
