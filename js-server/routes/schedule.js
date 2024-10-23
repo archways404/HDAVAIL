@@ -53,14 +53,16 @@ async function routes(fastify, options) {
 			let globalSchedule;
 
 			if (!uuid) {
-				let HDCache = await handleHDCache();
-				if (HDCache) {
-					globalSchedule = HDCache;
-				} else {
+				// Check if the schedule is already cached
+				globalSchedule = await handleHDCache(fastify.pg);
+
+				// If the cache is empty, fetch the data and cache it
+				if (!globalSchedule) {
 					const client = await fastify.pg.connect();
 					globalSchedule = await updateHDCache(client);
 				}
 			} else {
+				// If UUID is provided, fetch the specific schedule
 				const client = await fastify.pg.connect();
 				globalSchedule = await fetchSchedule(client, uuid);
 				client.release();
@@ -72,6 +74,7 @@ async function routes(fastify, options) {
 			return reply.status(500).send({ error: 'Failed to fetch schedule' });
 		}
 	});
+
 }
 
 module.exports = routes;
