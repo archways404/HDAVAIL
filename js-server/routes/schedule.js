@@ -1,7 +1,26 @@
 const { createSchedule } = require('../functions/createSchedule');
 const { fetchSchedule } = require('../functions/fetchSchedule');
 
+const { startRequest } = require('../functions/processingTime');
+const { endRequest } = require('../functions/processingTime');
+const { calculateRequest } = require('../functions/processingTime');
+const { fetchDataStart } = require('../functions/processingTime');
+const { fetchDataEnd } = require('../functions/processingTime');
+
 async function routes(fastify, options) {
+	fastify.addHook('onRequest', (request, reply, done) => {
+		startRequest(request);
+		done();
+	});
+
+	fastify.addHook('onResponse', (request, reply, done) => {
+		request.sendTime = Date.now();
+		endRequest(request);
+		const times = calculateRequest(request);
+		console.log(`Request stats: ${JSON.stringify(times)}`);
+		done();
+	});
+
 	fastify.get('/scheduleTemplate', async (request, reply) => {
 		try {
 			const scheduleTemplate = createSchedule();
@@ -30,11 +49,13 @@ async function routes(fastify, options) {
 			const client = await fastify.pg.connect();
 			const { uuid } = request.query;
 			let globalSchedule;
+			fetchDataStart(request);
 			if (!uuid) {
 				globalSchedule = await fetchSchedule(client, null);
 			} else {
 				globalSchedule = await fetchSchedule(client, uuid);
 			}
+			fetchDataEnd(request);
 			return reply.send(globalSchedule);
 		} catch (error) {
 			console.error('Template error:', error.message);
