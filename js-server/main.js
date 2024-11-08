@@ -215,8 +215,8 @@ app.addHook('onReady', async () => {
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
 
-				// Optionally update the cache when slots change
-				// await updateHDCache(client); // <-- Refresh cache when slots change
+				// Update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 
 			if (msg.channel === 'user_slots_change') {
@@ -224,8 +224,8 @@ app.addHook('onReady', async () => {
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
 
-				// Optionally update the cache when slots change
-				// await updateHDCache(client); // <-- Refresh cache when slots change
+				// Update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
 	} catch (err) {
