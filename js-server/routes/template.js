@@ -101,6 +101,7 @@ async function routes(fastify, options) {
 		}
 	});
 
+	// TODO Change it to use weekday + time instead of actual date
 	fastify.post('/create-template-with-entries', async (request, reply) => {
 		const { owner_id, template_name, private_status, entries } = request.body;
 		const client = await fastify.pg.connect();
