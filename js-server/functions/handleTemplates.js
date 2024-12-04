@@ -62,11 +62,17 @@ async function create_template_with_entries(
 ) {
 	try {
 		const query = `SELECT create_template_with_entries($1, $2, $3, $4::JSONB)`;
+		const formattedEntries = entries.map((entry) => ({
+			slot_type: entry.slot_type,
+			weekday: entry.weekday, // Ensure weekday is between 1 (Monday) and 7 (Sunday)
+			start_time: entry.start_time,
+			end_time: entry.end_time,
+		}));
 		const result = await client.query(query, [
 			owner_id,
 			template_name,
 			private_status,
-			JSON.stringify(entries),
+			JSON.stringify(formattedEntries),
 		]);
 		return result.rows[0];
 	} catch (error) {

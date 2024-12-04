@@ -6,8 +6,9 @@ RETURNS TABLE (
     template_owner_username VARCHAR,
     slot_name_short VARCHAR,
     slot_name_long VARCHAR,
-    start_date TIMESTAMP,
-    end_date TIMESTAMP
+    weekday SMALLINT,
+    start_time TIME,
+    end_time TIME
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -18,8 +19,9 @@ BEGIN
         u.username AS template_owner_username,
         st.slot_name_short,
         st.slot_name_long,
-        te.start_date,
-        te.end_date
+        te.weekday,
+        te.start_time,
+        te.end_time
     FROM template_entries te
     JOIN templates t ON te.template_id = t.template_id
     JOIN users u ON t.template_owner_id = u.uuid
