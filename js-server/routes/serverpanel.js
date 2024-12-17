@@ -11,8 +11,9 @@ async function routes(fastify, options) {
 				const user = request.user;
 				if (user.type === 'admin' || user.type === 'maintainer') {
 					console.log('valid');
+
 					// Step 1: Perform 'git pull'
-					const { stdout, stderr } = await execPromise('git pull');
+					const { stdout, stderr } = await execPromise('git pull --ff-only');
 					if (stderr) {
 						throw new Error(stderr);
 					}
@@ -22,10 +23,12 @@ async function routes(fastify, options) {
 					reply.send({ message: 'Update successful. Server is restarting...' });
 
 					// Step 3: Gracefully shut down the server
-					await fastify.close();
-					process.exit(0); // Exit to allow the process manager to restart the app
+					setTimeout(async () => {
+						await fastify.close();
+						process.kill(process.pid, 'SIGINT'); // Use SIGINT for PM2 compatibility
+					}, 1000); // Delay shutdown slightly
 				} else {
-					reply.send({ message: 'RESTRICTED' });
+					reply.status(403).send({ message: 'RESTRICTED' });
 				}
 			} catch (error) {
 				fastify.log.error('Update failed:', error.message);
