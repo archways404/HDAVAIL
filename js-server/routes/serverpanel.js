@@ -20,25 +20,30 @@ async function routes(fastify, options) {
 					}
 					fastify.log.info('Git pull successful:', stdout);
 
-					// Step 2: Send response before triggering restart
+					// Step 2: Reinstall dependencies (if package.json changed)
+					await execPromise('pnpm install --frozen-lockfile');
+					fastify.log.info('Dependencies updated');
+
+					// Step 3: Send response before restart
 					reply.send({ message: 'Update successful. Server is restarting...' });
 
-					// Step 3: Restart PM2 process
+					// Step 4: Restart PM2 process
 					setTimeout(() => {
-						exec(`pm2 restart js-server`, (error, stdout, stderr) => {
+						exec('pm2 restart js-server', (error, stdout, stderr) => {
 							if (error) {
 								console.error('Failed to restart PM2 process:', error.message);
 							} else {
 								console.log('PM2 restart successful:', stdout);
 							}
 						});
-					}, 1000); // Delay restart slightly to ensure response is sent
+					}, 1000);
 				} else {
 					reply.status(403).send({ message: 'RESTRICTED' });
 				}
 			} catch (error) {
 				fastify.log.error('Update failed:', error.message);
 				console.log('Update failed:', error.message);
+
 				reply
 					.status(500)
 					.send({ error: 'Update failed. Check server logs for details.' });
@@ -48,7 +53,7 @@ async function routes(fastify, options) {
 
 	fastify.get('/update-test', async (request, reply) => {
 		try {
-			return reply.send({ message: 'its working!' });
+			return reply.send({ message: 'test!' });
 		} catch (error) {
 			console.error(error);
 			return reply.status(500).send({ message: 'Internal server error' });
