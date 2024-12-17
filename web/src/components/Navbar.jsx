@@ -98,6 +98,17 @@ const Navbar = () => {
 								Server Info
 							</Link>
 						</li>
+						<li>
+							<Link
+								to="/server-panel"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Server-Panel
+							</Link>
+						</li>
 					</>
 				);
 			case 'maintainer':
@@ -112,6 +123,17 @@ const Navbar = () => {
 										: 'hover:text-gray-600'
 								}`}>
 								Dashboard
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/server-panel"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Server-Panel
 							</Link>
 						</li>
 					</>

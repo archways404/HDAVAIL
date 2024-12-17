@@ -91,7 +91,9 @@ app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+app.register(require('./routes/serverpanel'));
 app.register(require('./routes/admin'));
+app.register(require('./routes/template'));
 app.register(require('./routes/statistics'));
 app.register(require('./routes/schedule'));
 app.register(require('./routes/status'));
@@ -215,8 +217,8 @@ app.addHook('onReady', async () => {
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
 
-				// Optionally update the cache when slots change
-				// await updateHDCache(client); // <-- Refresh cache when slots change
+				// Update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 
 			if (msg.channel === 'user_slots_change') {
@@ -224,8 +226,8 @@ app.addHook('onReady', async () => {
 				const slots = await getAssignedSlots(app);
 				await generateICSFiles(slots);
 
-				// Optionally update the cache when slots change
-				// await updateHDCache(client); // <-- Refresh cache when slots change
+				// Update the cache when slots change
+				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
 	} catch (err) {

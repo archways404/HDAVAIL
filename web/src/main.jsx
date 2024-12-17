@@ -22,6 +22,7 @@ import ManageUsers from './pages/manageusers';
 import UserDetail from './pages/userdetail';
 import ServerInfo from './pages/serverinfo';
 import CreateSchedule from './pages/createschedule';
+import ServerPanel from './pages/serverpanel';
 
 import './global.css';
 
@@ -116,6 +117,14 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserTypes={['admin']}>
 									<CreateSchedule />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/server-panel"
+							element={
+								<AuthWrapper allowedUserTypes={['admin', 'maintainer']}>
+									<ServerPanel />
 								</AuthWrapper>
 							}
 						/>
