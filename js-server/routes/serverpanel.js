@@ -52,7 +52,7 @@ async function routes(fastify, options) {
 
 	fastify.get('/update-test', async (request, reply) => {
 		try {
-			return reply.send({ message: 'i guess it works!' });
+			return reply.send({ message: 'final check' });
 		} catch (error) {
 			console.error(error);
 			return reply.status(500).send({ message: 'Internal server error' });
