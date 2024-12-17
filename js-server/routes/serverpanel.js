@@ -3,7 +3,7 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 
 async function routes(fastify, options) {
-  fastify.post(
+	fastify.post(
 		'/update',
 		{ preValidation: fastify.verifyJWT },
 		async (request, reply) => {
@@ -14,21 +14,17 @@ async function routes(fastify, options) {
 					console.log('valid');
 
 					// Step 1: Perform 'git pull'
-					fastify.log.info('Performing git pull...');
-					const { stdout: gitOutput, stderr: gitError } = await execPromise(
-						'git pull --ff-only'
-					);
-					if (gitError) {
-						throw new Error(`Git Pull Error: ${gitError}`);
+					const { stdout, stderr } = await execPromise('git pull --ff-only');
+					if (stderr) {
+						throw new Error(stderr);
 					}
-					fastify.log.info('Git pull successful:', gitOutput);
+					fastify.log.info('Git pull successful:', stdout);
 
-					// Step 2: Install dependencies if package.json changed
-					fastify.log.info('Checking dependencies...');
+					// Step 2: Reinstall dependencies (if package.json changed)
 					await execPromise('pnpm install --frozen-lockfile');
-					fastify.log.info('Dependencies installed successfully.');
+					fastify.log.info('Dependencies updated');
 
-					// Step 3: Send response before restarting
+					// Step 3: Send response before restart
 					reply.send({ message: 'Update successful. Server is restarting...' });
 
 					// Step 4: Restart PM2 process
@@ -40,13 +36,14 @@ async function routes(fastify, options) {
 								console.log('PM2 restart successful:', stdout);
 							}
 						});
-					}, 1000); // Delay for stability
+					}, 1000);
 				} else {
 					reply.status(403).send({ message: 'RESTRICTED' });
 				}
 			} catch (error) {
 				fastify.log.error('Update failed:', error.message);
 				console.log('Update failed:', error.message);
+
 				reply
 					.status(500)
 					.send({ error: 'Update failed. Check server logs for details.' });
@@ -56,7 +53,7 @@ async function routes(fastify, options) {
 
 	fastify.get('/update-test', async (request, reply) => {
 		try {
-			return reply.send({ message: 'test5!' });
+			return reply.send({ message: 'test2!' });
 		} catch (error) {
 			console.error(error);
 			return reply.status(500).send({ message: 'Internal server error' });
