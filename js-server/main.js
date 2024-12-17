@@ -91,6 +91,7 @@ app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+app.register(require('./routes/serverpanel'));
 app.register(require('./routes/admin'));
 app.register(require('./routes/template'));
 app.register(require('./routes/statistics'));
