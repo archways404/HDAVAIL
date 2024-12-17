@@ -9,6 +9,7 @@ async function routes(fastify, options) {
 		async (request, reply) => {
 			try {
 				const user = request.user;
+
 				if (user.type === 'admin' || user.type === 'maintainer') {
 					console.log('valid');
 
@@ -19,14 +20,19 @@ async function routes(fastify, options) {
 					}
 					fastify.log.info('Git pull successful:', stdout);
 
-					// Step 2: Send response before shutdown
+					// Step 2: Send response before triggering restart
 					reply.send({ message: 'Update successful. Server is restarting...' });
 
-					// Step 3: Gracefully shut down the server
-					setTimeout(async () => {
-						await fastify.close();
-						process.kill(process.pid, 'SIGINT'); // Use SIGINT for PM2 compatibility
-					}, 1000); // Delay shutdown slightly
+					// Step 3: Restart PM2 process
+					setTimeout(() => {
+						exec(`pm2 restart js-server`, (error, stdout, stderr) => {
+							if (error) {
+								console.error('Failed to restart PM2 process:', error.message);
+							} else {
+								console.log('PM2 restart successful:', stdout);
+							}
+						});
+					}, 1000); // Delay restart slightly to ensure response is sent
 				} else {
 					reply.status(403).send({ message: 'RESTRICTED' });
 				}
