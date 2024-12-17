@@ -4,7 +4,7 @@
 		"dev:web": "cd web && pnpm install && cross-env NODE_ENV=development pnpm run dev",
 		"dev:js": "cd js-server && pnpm install && cross-env NODE_ENV=development pnpm run dev",
 		"dev": "concurrently \"pnpm run dev:web\" \"pnpm run dev:js\"",
-		"prod": "cd js-server && pnpm install && cross-env NODE_ENV=production pnpm run prod"
+		"prod": "cd js-server && cross-env NODE_ENV=production pnpm run prod"
 	},
 	"devDependencies": {
 		"concurrently": "^9.0.1",
