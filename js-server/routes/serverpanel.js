@@ -29,7 +29,7 @@ async function routes(fastify, options) {
 
 					// Step 4: Restart PM2 process
 					setTimeout(() => {
-						exec('pm2 restart js-server', (error, stdout, stderr) => {
+						exec('pm2 restart api', (error, stdout, stderr) => {
 							if (error) {
 								console.error('Failed to restart PM2 process:', error.message);
 							} else {
