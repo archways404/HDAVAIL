@@ -175,32 +175,10 @@ app.listen({ port: PORT, host: HOST }, async function (err, address) {
 	}
 });
 
-// Move WebSocket setup outside app.listen
-const wss = new WebSocket.Server({ server: app.server });
-
-// Listen for WebSocket connections
-wss.on('connection', (ws) => {
-	console.log('Client connected via WebSocket');
-
-	// Handle WebSocket messages
-	ws.on('message', (message) => {
-		console.log('Received message:', message);
-		ws.send(`Echo: ${message}`);
-	});
-
-	// Handle WebSocket disconnection
-	ws.on('close', () => {
-		console.log('WebSocket client disconnected');
-	});
-
-	// Handle WebSocket errors
-	ws.on('error', (error) => {
-		console.error('WebSocket error:', error);
-	});
-});
-
 app.addHook('onReady', async () => {
+	console.log('test');
 	const client = await app.pg.connect();
+	console.log('test2');
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);

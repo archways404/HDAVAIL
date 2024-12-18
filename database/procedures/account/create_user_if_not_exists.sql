@@ -25,3 +25,16 @@ BEGIN
 
 END;
 $$;
+
+
+-- USAGE
+
+CALL create_user_if_not_exists(
+    'username123',          -- p_username
+    'user@example.com',     -- p_email
+    'admin',                -- p_type
+    NULL,                   -- p_reset_token
+    'John',                 -- p_first_name
+    'Doe'                   -- p_last_name
+);
+

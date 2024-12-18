@@ -11,7 +11,7 @@ function DisplayStatus() {
 		const fetchStatusMessages = async () => {
 			try {
 				const response = await fetch(
-					import.meta.env.VITE_API_URL + '/status/active'
+					import.meta.env.VITE_BASE_ADDR + '/status/active'
 				);
 				if (!response.ok) {
 					throw new Error('Failed to fetch status messages');
@@ -33,7 +33,15 @@ function DisplayStatus() {
 	}
 
 	if (error) {
-		return <div>Error: {error}</div>;
+		return (
+			<div className="space-y-4">
+				<StatusMessage
+					key={'XXXXXXX'}
+					message={'The server is currently offline'}
+					type={'error'}
+				/>
+			</div>
+		);
 	}
 
 	return (
