@@ -36,6 +36,28 @@ $$ LANGUAGE plpgsql;
 -- USAGE
 
 SELECT create_template_with_entries(
+    'CREATOR UUID',                  -- Template owner ID
+    'TEMPLATE NAME',                 -- Template name
+    FALSE,                           -- Private (TRUE/FALSE)
+    '[
+		{
+			"slot_type": "27dc1713-c650-4409-af2e-2ac6242ea65d",
+		   	"weekday": 1,
+			"start_time": "09:00:00",
+			"end_time": "11:00:00"
+		},
+      	{
+			"slot_type": "05b5be64-852f-4fbd-acc9-41e621cf6824",
+       		"weekday": 5,  
+        	"start_time": "14:00:00",
+        	"end_time": "16:00:00"
+		}
+	]'::JSONB -- Entries JSONB
+);
+
+-- OLD FORMAT
+
+SELECT create_template_with_entries(
     '5e2eba4c-e6d6-4619-818f-0d7e1a0296c2', -- Template owner ID
     'TestTemplate 3',                       -- Template name
     TRUE,                                   -- Private
