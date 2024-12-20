@@ -176,9 +176,7 @@ app.listen({ port: PORT, host: HOST }, async function (err, address) {
 });
 
 app.addHook('onReady', async () => {
-	console.log('test');
 	const client = await app.pg.connect();
-	console.log('test2');
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
