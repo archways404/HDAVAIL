@@ -23,6 +23,7 @@ import UserDetail from './pages/userdetail';
 import ServerInfo from './pages/serverinfo';
 import CreateSchedule from './pages/createschedule';
 import ServerPanel from './pages/serverpanel';
+import EmailStatus from './pages/emailstatus';
 
 import './global.css';
 
@@ -125,6 +126,14 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserTypes={['admin', 'maintainer']}>
 									<ServerPanel />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/email-status"
+							element={
+								<AuthWrapper allowedUserTypes={['admin', 'maintainer']}>
+									<EmailStatus />
 								</AuthWrapper>
 							}
 						/>
