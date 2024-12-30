@@ -1,7 +1,4 @@
-const { hashPassword, comparePassword } = require('./salt');
-const { writeToLogfile } = require('./logfileLogic');
-
-const argon2 = require('argon2'); // Ensure you have argon2 installed
+const argon2 = require('argon2');
 
 async function login(client, email, password, ip, deviceid) {
 	try {
@@ -21,8 +18,8 @@ async function login(client, email, password, ip, deviceid) {
 		// Ensure an entry exists in the account_lockout table
 		await client.query(
 			`INSERT INTO account_lockout (user_id, failed_attempts, locked, unlock_time)
-             VALUES ($1, 0, FALSE, NULL)
-             ON CONFLICT (user_id) DO NOTHING`,
+				VALUES ($1, 0, FALSE, NULL)
+				ON CONFLICT (user_id) DO NOTHING`,
 			[user.user_id]
 		);
 
@@ -42,8 +39,8 @@ async function login(client, email, password, ip, deviceid) {
 			// If unlock_time has passed, reset the lockout
 			await client.query(
 				`UPDATE account_lockout 
-                 SET locked = FALSE, failed_attempts = 0, unlock_time = NULL 
-                 WHERE user_id = $1`,
+					SET locked = FALSE, failed_attempts = 0, unlock_time = NULL 
+					WHERE user_id = $1`,
 				[user.user_id]
 			);
 		}
@@ -55,8 +52,8 @@ async function login(client, email, password, ip, deviceid) {
 			// Handle failed login attempt (increment failed_attempts, etc.)
 			await client.query(
 				`UPDATE account_lockout 
-                 SET failed_attempts = failed_attempts + 1, last_failed_ip = $2, last_failed_time = CURRENT_TIMESTAMP 
-                 WHERE user_id = $1`,
+					SET failed_attempts = failed_attempts + 1, last_failed_ip = $2, last_failed_time = CURRENT_TIMESTAMP 
+					WHERE user_id = $1`,
 				[user.user_id, ip]
 			);
 
@@ -71,8 +68,8 @@ async function login(client, email, password, ip, deviceid) {
 				const unlockTime = new Date(Date.now() + 1 * 60 * 1000); // 15 minutes from now
 				await client.query(
 					`UPDATE account_lockout 
-                     SET locked = TRUE, unlock_time = $2 
-                     WHERE user_id = $1`,
+						SET locked = TRUE, unlock_time = $2 
+						WHERE user_id = $1`,
 					[user.user_id, unlockTime]
 				);
 				throw new Error(
@@ -86,8 +83,8 @@ async function login(client, email, password, ip, deviceid) {
 		// If successful, reset failed attempts and return user info
 		await client.query(
 			`UPDATE account_lockout 
-             SET failed_attempts = 0, locked = FALSE, unlock_time = NULL 
-             WHERE user_id = $1`,
+				SET failed_attempts = 0, locked = FALSE, unlock_time = NULL 
+				WHERE user_id = $1`,
 			[user.user_id]
 		);
 
@@ -107,4 +104,3 @@ async function login(client, email, password, ip, deviceid) {
 }
 
 module.exports = { login };
-

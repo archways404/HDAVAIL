@@ -76,7 +76,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/serverinfo"
 							element={
-								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
 									<ServerInfo />
 								</AuthWrapper>
 							}
@@ -84,7 +84,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/invite"
 							element={
-								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
 									<Invite />
 								</AuthWrapper>
 							}
@@ -92,7 +92,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/manage-users"
 							element={
-								<AuthWrapper allowedUserTypes={['admin']}>
+								<AuthWrapper allowedUserRoles={['admin']}>
 									<ManageUsers />
 								</AuthWrapper>
 							}
@@ -100,7 +100,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/user/:uuid"
 							element={
-								<AuthWrapper allowedUserTypes={['admin']}>
+								<AuthWrapper allowedUserRoles={['admin']}>
 									<UserDetail />
 								</AuthWrapper>
 							}
@@ -108,7 +108,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/schedule"
 							element={
-								<AuthWrapper allowedUserTypes={['admin', 'worker']}>
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
 									<Schedule />
 								</AuthWrapper>
 							}
@@ -116,7 +116,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/create-schedule"
 							element={
-								<AuthWrapper allowedUserTypes={['admin']}>
+								<AuthWrapper allowedUserRoles={['admin']}>
 									<CreateSchedule />
 								</AuthWrapper>
 							}
@@ -124,7 +124,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/server-panel"
 							element={
-								<AuthWrapper allowedUserTypes={['admin', 'maintainer']}>
+								<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
 									<ServerPanel />
 								</AuthWrapper>
 							}
@@ -132,7 +132,7 @@ createRoot(document.getElementById('root')).render(
 						<Route
 							path="/email-status"
 							element={
-								<AuthWrapper allowedUserTypes={['admin', 'maintainer']}>
+								<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
 									<EmailStatus />
 								</AuthWrapper>
 							}
@@ -141,7 +141,7 @@ createRoot(document.getElementById('root')).render(
 							path="/welcome"
 							element={
 								<AuthWrapper
-									allowedUserTypes={['admin', 'worker', 'maintainer']}>
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
 									<Welcome />
 								</AuthWrapper>
 							}
@@ -150,7 +150,7 @@ createRoot(document.getElementById('root')).render(
 							path="/calendarlink"
 							element={
 								<AuthWrapper
-									allowedUserTypes={['admin', 'worker', 'maintainer']}>
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
 									<CalendarLink />
 								</AuthWrapper>
 							}

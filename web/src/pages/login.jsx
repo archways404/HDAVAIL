@@ -11,7 +11,7 @@ import { AuthContext } from '../context/AuthContext';
 import LoadingScreen from '../components/LoadingScreen';
 
 function Login() {
-	const [username, setUsername] = useState('');
+	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
 	const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -21,7 +21,7 @@ function Login() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		if (!username || !password) {
+		if (!email || !password) {
 			setError('Please fill in all fields.');
 			return;
 		}
@@ -42,14 +42,14 @@ function Login() {
 				},
 				credentials: 'include',
 				body: JSON.stringify({
-					username,
+					email,
 					password,
 					deviceId,
 				}),
 			});
 
 			if (!response.ok) {
-				throw new Error('Invalid username or password');
+				throw new Error('Invalid email or password');
 			}
 
 			await checkAuth();
@@ -90,17 +90,17 @@ function Login() {
 						className="space-y-4">
 						<div>
 							<Label
-								htmlFor="username"
+								htmlFor="email"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-								Username
+								Email
 							</Label>
 							<Input
-								id="username"
-								type="text"
-								value={username}
-								onChange={(e) => setUsername(e.target.value)}
+								id="email"
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
 								className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-								placeholder="Enter your username"
+								placeholder="Enter your email"
 								required
 							/>
 						</div>

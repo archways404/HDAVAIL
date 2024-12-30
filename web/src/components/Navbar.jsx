@@ -11,8 +11,8 @@ const Navbar = () => {
 		return null;
 	}
 
-	const renderLinksForUserType = () => {
-		switch (user.type) {
+	const renderLinksForUserRole = () => {
+		switch (user.role) {
 			case 'worker':
 				return (
 					<>
@@ -190,8 +190,8 @@ const Navbar = () => {
 					</Link>
 				</li>
 
-				{/* Conditionally render links based on user type */}
-				{renderLinksForUserType()}
+				{/* Conditionally render links based on user Role */}
+				{renderLinksForUserRole()}
 
 				<li>
 					<Link

@@ -29,14 +29,14 @@ async function routes(fastify, options) {
 		{
 			config: {
 				rateLimit: {
-					max: 15,
+					max: 150,
 					timeWindow: '15 minutes',
 					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
 			},
 		},
 		async (request, reply) => {
-			const { username, password, deviceId } = request.body;
+			const { email, password, deviceId } = request.body;
 			const ip = request.ip;
 
 			if (!deviceId) {
@@ -47,14 +47,17 @@ async function routes(fastify, options) {
 
 			fetchDataStart(request);
 
-			const user = await login(client, username, password, ip, deviceId);
-
-			console.log('user:', user);
-			console.log('user-error:', user.error);
+			const user = await login(client, email, password, ip, deviceId);
 
 			if (!user.error) {
 				const authToken = fastify.jwt.sign(
-					{ uuid: user.uuid, username: user.username, type: user.type },
+					{
+						uuid: user.user_id,
+						email: user.email,
+						role: user.role,
+						first: user.first_name,
+						last: user.last_name,
+					},
 					{ expiresIn: '15m' }
 				);
 
@@ -83,24 +86,22 @@ async function routes(fastify, options) {
 					message: user.error,
 				});
 			}
-
 		}
 	);
 
 	// CREATES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { username, first_name, last_name, email, type } = request.body;
+		const { email, first_name, last_name, role } = request.body;
 		const client = await fastify.pg.connect();
 		try {
 			fetchDataStart(request);
 
 			const status = await createNewUser(
 				client,
-				username,
+				email,
 				first_name,
 				last_name,
-				email,
-				type
+				role
 			);
 
 			fetchDataEnd(request);
@@ -249,8 +250,15 @@ async function routes(fastify, options) {
 		{ preValidation: fastify.verifyJWT },
 		async (request, reply) => {
 			const user = request.user;
+			console.log('user: ', user);
 			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
+				{
+					uuid: user.uuid,
+					email: user.email,
+					role: user.role,
+					first: user.first,
+					last: user.last,
+				},
 				{ expiresIn: '15m' }
 			);
 

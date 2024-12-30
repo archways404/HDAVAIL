@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 
 import LoadingScreen from './LoadingScreen';
 
-const AuthWrapper = ({ children, allowedUserTypes }) => {
+const AuthWrapper = ({ children, allowedUserRoles }) => {
 	const { user, loading } = useContext(AuthContext);
 
 	if (loading) {
@@ -20,7 +20,7 @@ const AuthWrapper = ({ children, allowedUserTypes }) => {
 		);
 	}
 
-	if (allowedUserTypes && !allowedUserTypes.includes(user.type)) {
+	if (allowedUserRoles && !allowedUserRoles.includes(user.role)) {
 		return (
 			<Navigate
 				to="/welcome"
