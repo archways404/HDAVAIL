@@ -49,21 +49,41 @@ async function routes(fastify, options) {
 
 			const user = await login(client, username, password, ip, deviceId);
 
-			fetchDataEnd(request);
+			console.log('user:', user);
+			console.log('user-error:', user.error);
 
-			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
-				{ expiresIn: '15m' }
-			);
+			if (!user.error) {
+				const authToken = fastify.jwt.sign(
+					{ uuid: user.uuid, username: user.username, type: user.type },
+					{ expiresIn: '15m' }
+				);
 
-			reply.setCookie('authToken', authToken, {
-				httpOnly: true,
-				sameSite: 'None',
-				secure: true,
-				path: '/',
-			});
+				reply.setCookie('authToken', authToken, {
+					httpOnly: true,
+					sameSite: 'None',
+					secure: true,
+					path: '/',
+				});
 
-			return reply.send({ message: 'Login successful' });
+				fetchDataEnd(request);
+				return reply.send({ message: 'Login successful' });
+			} else if (user.error === 'Invalid password') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else if (user.error === 'Account with email does not exist') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else {
+				fetchDataEnd(request);
+				return reply.send({
+					message: user.error,
+				});
+			}
+
 		}
 	);
 
