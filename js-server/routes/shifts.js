@@ -255,6 +255,103 @@ async function routes(fastify, options) {
 		}
 	});
 
+	fastify.post('/createActiveShifts', async (request, reply) => {
+		const { shifts } = request.body;
+
+		if (!Array.isArray(shifts) || shifts.length === 0) {
+			return reply.status(400).send({
+				error: 'An array of shifts is required',
+			});
+		}
+
+		const client = await fastify.pg.connect();
+
+		try {
+			const insertedShifts = [];
+
+			for (const shift of shifts) {
+				const { shift_type_id, assigned_to, start_time, end_time, date } =
+					shift;
+
+				if (!shift_type_id || !start_time || !end_time || !date) {
+					return reply.status(400).send({
+						error:
+							'shift_type_id, start_time, end_time, and date are required for each shift',
+					});
+				}
+
+				const insertQuery = `
+        INSERT INTO active_shifts (shift_type_id, assigned_to, start_time, end_time, date)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *;
+      `;
+
+				const result = await client.query(insertQuery, [
+					shift_type_id,
+					assigned_to || null, // Optional: can be null if unassigned
+					start_time,
+					end_time,
+					date,
+				]);
+
+				insertedShifts.push(result.rows[0]);
+			}
+
+			return reply.status(201).send({
+				message: 'Active shifts created successfully',
+				shifts: insertedShifts,
+			});
+		} catch (error) {
+			console.error('Error creating active shifts:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to create active shifts' });
+		} finally {
+			client.release();
+		}
+	});
+
+	fastify.get('/getActiveShifts', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { shift_type_id, date, assigned_to } = request.query;
+
+		try {
+			let query = `
+      SELECT * FROM active_shifts
+      WHERE 1=1
+    `;
+			const queryParams = [];
+
+			if (shift_type_id) {
+				queryParams.push(shift_type_id);
+				query += ` AND shift_type_id = $${queryParams.length}`;
+			}
+
+			if (date) {
+				queryParams.push(date);
+				query += ` AND date = $${queryParams.length}`;
+			}
+
+			if (assigned_to) {
+				queryParams.push(assigned_to);
+				query += ` AND assigned_to = $${queryParams.length}`;
+			}
+
+			const result = await client.query(query, queryParams);
+
+			return reply.status(200).send({
+				message: 'Active shifts retrieved successfully',
+				active_shifts: result.rows,
+			});
+		} catch (error) {
+			console.error('Error retrieving active shifts:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to retrieve active shifts' });
+		} finally {
+			client.release();
+		}
+	});
 }
 
 module.exports = routes;
