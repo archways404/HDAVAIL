@@ -135,10 +135,18 @@ async function routes(fastify, options) {
 
 	fastify.get('/getTemplateMeta', async (request, reply) => {
 		const client = await fastify.pg.connect();
+		const { user_id } = request.query;
+
+		if (!user_id) {
+			return reply.status(400).send({ error: 'user_id is required' });
+		}
 
 		try {
-			const query = `SELECT * FROM template_meta;`;
-			const result = await client.query(query);
+			const query = `
+      SELECT * FROM template_meta
+      WHERE private = FALSE OR creator_id = $1;
+    `;
+			const result = await client.query(query, [user_id]);
 
 			return reply.status(200).send({
 				message: 'Template meta records retrieved successfully',
@@ -214,14 +222,26 @@ async function routes(fastify, options) {
 
 	fastify.get('/getTemplates', async (request, reply) => {
 		const client = await fastify.pg.connect();
+		const { template_id } = request.query; // Extract `template_id` from query parameters
+
+		if (!template_id) {
+			return reply.status(400).send({ error: 'template_id is required' });
+		}
 
 		try {
 			const query = `
-      SELECT t.*, tm.creator_id, tm.private
+      SELECT t.*, tm.creator_id, tm.private, tm.name
       FROM templates t
-      JOIN template_meta tm ON t.template_id = tm.template_id;
+      JOIN template_meta tm ON t.template_id = tm.template_id
+      WHERE t.template_id = $1;
     `;
-			const result = await client.query(query);
+			const result = await client.query(query, [template_id]);
+
+			if (result.rows.length === 0) {
+				return reply
+					.status(404)
+					.send({ message: 'No templates found for the given template_id' });
+			}
 
 			return reply.status(200).send({
 				message: 'Templates retrieved successfully',
@@ -234,6 +254,7 @@ async function routes(fastify, options) {
 			client.release();
 		}
 	});
+
 }
 
 module.exports = routes;
