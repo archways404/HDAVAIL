@@ -4,8 +4,6 @@ SELECT * FROM account;
 
 SELECT * FROM account_lockout;
 
-SELECT * FROM account_schedule_groups;
-
 
 
 -- ACCOUNT GROUPS

@@ -9,6 +9,8 @@ const { calculateRequest } = require('../functions/processingTime');
 const { fetchDataStart } = require('../functions/processingTime');
 const { fetchDataEnd } = require('../functions/processingTime');
 
+const { createAuthLog } = require('../functions/db_logs');
+
 async function routes(fastify, options) {
 	fastify.addHook('onRequest', (request, reply, done) => {
 		startRequest(request);
@@ -49,6 +51,9 @@ async function routes(fastify, options) {
 
 			const user = await login(client, email, password, ip, deviceId);
 
+			console.log('user:', user);
+			console.log('ip:', ip);
+
 			if (!user.error) {
 				const authToken = fastify.jwt.sign(
 					{
@@ -67,6 +72,8 @@ async function routes(fastify, options) {
 					secure: true,
 					path: '/',
 				});
+
+				await createAuthLog(client, user.user_id, ip, deviceId, true, null);
 
 				fetchDataEnd(request);
 				return reply.send({ message: 'Login successful' });
