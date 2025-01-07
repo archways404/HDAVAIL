@@ -3,13 +3,9 @@ const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
-const underPressure = require('@fastify/under-pressure');
-const WebSocket = require('ws');
 const rateLimit = require('@fastify/rate-limit');
 const metrics = require('fastify-metrics');
-const os = require('os');
 const fs = require('fs');
-const logger = require('./logger');
 const path = require('path');
 
 const { getAssignedSlots } = require('./functions/createFiles');
@@ -83,7 +79,7 @@ app.addHook('preParsing', async (request, reply, payload) => {
 });
 
 app.register(rateLimit, {
-	max: 1500,
+	max: 1500000,
 	timeWindow: '1 minute',
 });
 

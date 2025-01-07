@@ -31,7 +31,7 @@ async function routes(fastify, options) {
 		{
 			config: {
 				rateLimit: {
-					max: 150,
+					max: 15000000,
 					timeWindow: '15 minutes',
 					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
