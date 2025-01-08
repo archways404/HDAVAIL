@@ -26,6 +26,12 @@ CREATE TABLE shift_types (
     name_short VARCHAR(100) NOT NULL
 );
 
+CREATE TABLE schedule_groups (
+    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each schedule group
+    name VARCHAR(255) NOT NULL,                           -- Name of the schedule group
+    description VARCHAR(255)                              -- Optional description of the group
+);
+
 CREATE TABLE active_shifts (
     shift_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each active shift
     shift_type_id UUID NOT NULL,                          -- References the type of the shift
@@ -71,12 +77,6 @@ CREATE TABLE shift_trades (
     FOREIGN KEY (shift_id) REFERENCES active_shifts(shift_id) ON DELETE CASCADE
 );
 
-CREATE TABLE schedule_groups (
-    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each schedule group
-    name VARCHAR(255) NOT NULL,                           -- Name of the schedule group
-    description VARCHAR(255)                              -- Optional description of the group
-);
-
 CREATE TABLE account_schedule_groups (
     id SERIAL PRIMARY KEY,                                -- Unique ID for each association
     user_id UUID NOT NULL,                                -- References the user account
@@ -119,21 +119,6 @@ CREATE TABLE templates (
     end_time TIME NOT NULL,                               -- Shift end time
     FOREIGN KEY (template_id) REFERENCES template_meta(template_id) ON DELETE CASCADE, -- Deletes shifts if the template is deleted
     FOREIGN KEY (shift_type_id) REFERENCES shift_types(shift_type_id) ON DELETE CASCADE -- Deletes shifts if the shift type is deleted
-);
-
-CREATE TABLE schedule_groups (
-    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each schedule group
-    name VARCHAR(255) NOT NULL,                           -- Name of the schedule group
-    description VARCHAR(255)                              -- Optional description of the group
-);
-
-CREATE TABLE account_schedule_groups (
-    id SERIAL PRIMARY KEY,                                -- Unique ID for each association
-    user_id UUID NOT NULL,                                -- References the user account
-    group_id UUID NOT NULL,                               -- References the schedule group
-    FOREIGN KEY (user_id) REFERENCES account(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES schedule_groups(group_id) ON DELETE CASCADE,
-    UNIQUE (user_id, group_id)                            -- Prevent duplicate entries
 );
 
 CREATE TABLE auth_logs (
