@@ -24,6 +24,7 @@ import ServerInfo from './pages/serverinfo';
 import CreateSchedule from './pages/createschedule';
 import ServerPanel from './pages/serverpanel';
 import EmailStatus from './pages/emailstatus';
+import TestHandleShifts from './pages/testHandleShifts';
 
 import './global.css';
 
@@ -118,6 +119,14 @@ createRoot(document.getElementById('root')).render(
 							element={
 								<AuthWrapper allowedUserRoles={['admin']}>
 									<CreateSchedule />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/handle-shifts"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<TestHandleShifts />
 								</AuthWrapper>
 							}
 						/>
