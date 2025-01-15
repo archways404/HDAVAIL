@@ -1,3 +1,147 @@
+import { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import Layout from '../components/Layout';
+
+import CalendarViewMonth from '../temp/CalendarViewMonth';
+import CalendarViewWeek from '../temp/CalendarViewWeek';
+import CalendarViewDay from '../temp/CalendarViewDay';
+
+function Schedule() {
+	const { user } = useContext(AuthContext);
+
+	if (!user) {
+		return null;
+	}
+
+	const calendars = [{ id: 'cal1', name: 'Personal' }];
+	const initialEvents = [
+		{
+			id: '1',
+			calendarId: 'cal1',
+			title: 'Lunch',
+			category: 'time',
+			start: '2025-01-15T12:00:00',
+			end: '2025-01-15T13:30:00',
+		},
+		{
+			id: '2',
+			calendarId: 'cal1',
+			title: 'Coffee Break',
+			category: 'time',
+			start: '2025-01-16T15:00:00',
+			end: '2025-01-16T15:30:00',
+		},
+		{
+			id: '3',
+			calendarId: 'cal1',
+			title: 'Lunch2',
+			category: 'time',
+			start: '2025-01-15T12:00:00',
+			end: '2025-01-15T13:30:00',
+		},
+		{
+			id: '4',
+			calendarId: 'cal1',
+			title: 'Lunch222',
+			category: 'time',
+			start: '2025-01-16T12:00:00',
+			end: '2025-01-16T13:30:00',
+		},
+		{
+			id: '5',
+			calendarId: 'cal1',
+			title: 'Lunch3',
+			category: 'time',
+			start: '2025-01-15T12:00:00',
+			end: '2025-01-15T13:30:00',
+		},
+	];
+
+	const [view, setView] = useState('month'); // View state
+	const [currentDate, setCurrentDate] = useState(new Date()); // Current date state
+
+	const changeMonth = (offset) => {
+		const newDate = new Date(currentDate);
+		newDate.setMonth(newDate.getMonth() + offset);
+		setCurrentDate(newDate);
+	};
+
+	const onAfterRenderEvent = (event) => {
+		console.log(event.title);
+	};
+
+	let CurrentViewComponent;
+	if (view === 'month') CurrentViewComponent = CalendarViewMonth;
+	else if (view === 'week') CurrentViewComponent = CalendarViewWeek;
+	else if (view === 'day') CurrentViewComponent = CalendarViewDay;
+
+	return (
+		<Layout>
+			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
+				<div className="flex space-x-4">
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						onClick={() => changeMonth(-1)}>
+						Previous Month
+					</button>
+					<span className="text-lg font-semibold">
+						{currentDate.toLocaleDateString('en-US', {
+							year: 'numeric',
+							month: 'long',
+						})}
+					</span>
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						onClick={() => changeMonth(1)}>
+						Next Month
+					</button>
+				</div>
+
+				<div className="flex space-x-4 mt-4">
+					<button
+						className={`px-4 py-2 rounded ${
+							view === 'month'
+								? 'bg-blue-700 text-white'
+								: 'bg-gray-200 hover:bg-gray-300'
+						}`}
+						onClick={() => setView('month')}>
+						Month View
+					</button>
+					<button
+						className={`px-4 py-2 rounded ${
+							view === 'week'
+								? 'bg-blue-700 text-white'
+								: 'bg-gray-200 hover:bg-gray-300'
+						}`}
+						onClick={() => setView('week')}>
+						Week View
+					</button>
+					<button
+						className={`px-4 py-2 rounded ${
+							view === 'day'
+								? 'bg-blue-700 text-white'
+								: 'bg-gray-200 hover:bg-gray-300'
+						}`}
+						onClick={() => setView('day')}>
+						Day View
+					</button>
+				</div>
+
+				<div className="w-full mt-4">
+					<CurrentViewComponent
+						currentDate={currentDate}
+						calendars={calendars}
+						initialEvents={initialEvents}
+					/>
+				</div>
+			</div>
+		</Layout>
+	);
+}
+
+export default Schedule;
+
+/*
 import { useState, useEffect, useContext } from 'react';
 import DayColumn from '../components/DayColumn';
 import { AuthContext } from '../context/AuthContext';
@@ -133,7 +277,7 @@ function Schedule() {
 					className="p-2 bg-blue-600 text-white rounded shadow-md hover:bg-blue-700">
 					Next
 				</button>
-				{/* Button to toggle between all schedules and user's schedule */}
+				
 				<button
 					onClick={() => setShowUserSchedule(!showUserSchedule)}
 					className="p-2 bg-green-600 text-white rounded shadow-md hover:bg-green-700">
@@ -156,3 +300,4 @@ function Schedule() {
 }
 
 export default Schedule;
+*/

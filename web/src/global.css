@@ -64,3 +64,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide milestone section */
+/*
+.toastui-calendar-panel.toastui-calendar-milestone {
+	display: none !important;
+}
+*/
+
+/* Hide all-day section */
+/*
+.toastui-calendar-panel.toastui-calendar-allday {
+	display: none !important;
+}
+*/
+
+/*
+.toastui-calendar-panel-resizer {
+  display: none !important;
+}
+*/
+
+/*
+.toastui-calendar-panel.toastui-calendar-task {
+  display: none !important;
+}
+*/
