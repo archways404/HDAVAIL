@@ -1,10 +1,7 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Layout from '../components/Layout';
-
-import CalendarViewMonth from '../temp/CalendarViewMonth';
-import CalendarViewWeek from '../temp/CalendarViewWeek';
-import CalendarViewDay from '../temp/CalendarViewDay';
+import CalendarView from '../temp/CalendarView';
 
 function Schedule() {
 	const { user } = useContext(AuthContext);
@@ -13,125 +10,47 @@ function Schedule() {
 		return null;
 	}
 
-	const calendars = [{ id: 'cal1', name: 'Personal' }];
-	const initialEvents = [
+	// Central events state
+	const [events, setEvents] = useState([
 		{
 			id: '1',
-			calendarId: 'cal1',
 			title: 'Lunch',
-			category: 'time',
 			start: '2025-01-15T12:00:00',
 			end: '2025-01-15T13:30:00',
 		},
 		{
 			id: '2',
-			calendarId: 'cal1',
 			title: 'Coffee Break',
-			category: 'time',
 			start: '2025-01-16T15:00:00',
 			end: '2025-01-16T15:30:00',
 		},
-		{
-			id: '3',
-			calendarId: 'cal1',
-			title: 'Lunch2',
-			category: 'time',
-			start: '2025-01-15T12:00:00',
-			end: '2025-01-15T13:30:00',
-		},
-		{
-			id: '4',
-			calendarId: 'cal1',
-			title: 'Lunch222',
-			category: 'time',
-			start: '2025-01-16T12:00:00',
-			end: '2025-01-16T13:30:00',
-		},
-		{
-			id: '5',
-			calendarId: 'cal1',
-			title: 'Lunch3',
-			category: 'time',
-			start: '2025-01-15T12:00:00',
-			end: '2025-01-15T13:30:00',
-		},
-	];
+	]);
 
-	const [view, setView] = useState('month'); // View state
-	const [currentDate, setCurrentDate] = useState(new Date()); // Current date state
-
-	const changeMonth = (offset) => {
-		const newDate = new Date(currentDate);
-		newDate.setMonth(newDate.getMonth() + offset);
-		setCurrentDate(newDate);
+	// Event Handlers (create, update, delete)
+	const handleEventSubmit = (event) => {
+		if (events.find((e) => e.id === event.id)) {
+			// Update event
+			setEvents(events.map((e) => (e.id === event.id ? event : e)));
+		} else {
+			// Add new event
+			setEvents([...events, event]);
+		}
 	};
 
-	const onAfterRenderEvent = (event) => {
-		console.log(event.title);
+	const handleDeleteEvent = (eventId) => {
+		setEvents(events.filter((e) => e.id !== eventId));
 	};
-
-	let CurrentViewComponent;
-	if (view === 'month') CurrentViewComponent = CalendarViewMonth;
-	else if (view === 'week') CurrentViewComponent = CalendarViewWeek;
-	else if (view === 'day') CurrentViewComponent = CalendarViewDay;
 
 	return (
 		<Layout>
 			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
-				<div className="flex space-x-4">
-					<button
-						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-						onClick={() => changeMonth(-1)}>
-						Previous Month
-					</button>
-					<span className="text-lg font-semibold">
-						{currentDate.toLocaleDateString('en-US', {
-							year: 'numeric',
-							month: 'long',
-						})}
-					</span>
-					<button
-						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-						onClick={() => changeMonth(1)}>
-						Next Month
-					</button>
-				</div>
-
-				<div className="flex space-x-4 mt-4">
-					<button
-						className={`px-4 py-2 rounded ${
-							view === 'month'
-								? 'bg-blue-700 text-white'
-								: 'bg-gray-200 hover:bg-gray-300'
-						}`}
-						onClick={() => setView('month')}>
-						Month View
-					</button>
-					<button
-						className={`px-4 py-2 rounded ${
-							view === 'week'
-								? 'bg-blue-700 text-white'
-								: 'bg-gray-200 hover:bg-gray-300'
-						}`}
-						onClick={() => setView('week')}>
-						Week View
-					</button>
-					<button
-						className={`px-4 py-2 rounded ${
-							view === 'day'
-								? 'bg-blue-700 text-white'
-								: 'bg-gray-200 hover:bg-gray-300'
-						}`}
-						onClick={() => setView('day')}>
-						Day View
-					</button>
-				</div>
-
 				<div className="w-full mt-4">
-					<CurrentViewComponent
-						currentDate={currentDate}
-						calendars={calendars}
-						initialEvents={initialEvents}
+					{/* Pass the events and handlers */}
+					<CalendarView
+						events={events}
+						setEvents={setEvents}
+						onEventSubmit={handleEventSubmit}
+						onDeleteEvent={handleDeleteEvent}
 					/>
 				</div>
 			</div>
