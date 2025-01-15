@@ -44,14 +44,16 @@ function Schedule() {
 	return (
 		<Layout>
 			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
-				<div className="w-full mt-4">
-					{/* Pass the events and handlers */}
-					<CalendarView
-						events={events}
-						setEvents={setEvents}
-						onEventSubmit={handleEventSubmit}
-						onDeleteEvent={handleDeleteEvent}
-					/>
+				{/* Add some margin to the left and right */}
+				<div className="w-full max-w-6xl px-4 mt-4">
+					{/* Full height minus header/footer */}
+					<div className="h-[calc(100vh-200px)] overflow-hidden rounded-lg shadow-md">
+						<CalendarView
+							events={events}
+							onEventSubmit={handleEventSubmit}
+							onDeleteEvent={handleDeleteEvent}
+						/>
+					</div>
 				</div>
 			</div>
 		</Layout>
