@@ -11,8 +11,8 @@ const Navbar = () => {
 		return null;
 	}
 
-	const renderLinksForUserType = () => {
-		switch (user.type) {
+	const renderLinksForUserRole = () => {
+		switch (user.role) {
 			case 'worker':
 				return (
 					<>
@@ -32,6 +32,17 @@ const Navbar = () => {
 			case 'admin':
 				return (
 					<>
+						<li>
+							<Link
+								to="/handle-shifts"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								handle-shifts
+							</Link>
+						</li>
 						<li>
 							<Link
 								to="/invite"
@@ -190,8 +201,8 @@ const Navbar = () => {
 					</Link>
 				</li>
 
-				{/* Conditionally render links based on user type */}
-				{renderLinksForUserType()}
+				{/* Conditionally render links based on user Role */}
+				{renderLinksForUserRole()}
 
 				<li>
 					<Link

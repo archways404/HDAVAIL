@@ -1,3 +1,68 @@
+import { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import Layout from '../components/Layout';
+import CalendarView from '../temp/CalendarView';
+
+function Schedule() {
+	const { user } = useContext(AuthContext);
+
+	if (!user) {
+		return null;
+	}
+
+	// Central events state
+	const [events, setEvents] = useState([
+		{
+			id: '1',
+			title: 'Lunch',
+			start: '2025-01-15T12:00:00',
+			end: '2025-01-15T13:30:00',
+		},
+		{
+			id: '2',
+			title: 'Coffee Break',
+			start: '2025-01-16T15:00:00',
+			end: '2025-01-16T15:30:00',
+		},
+	]);
+
+	// Event Handlers (create, update, delete)
+	const handleEventSubmit = (event) => {
+		if (events.find((e) => e.id === event.id)) {
+			// Update event
+			setEvents(events.map((e) => (e.id === event.id ? event : e)));
+		} else {
+			// Add new event
+			setEvents([...events, event]);
+		}
+	};
+
+	const handleDeleteEvent = (eventId) => {
+		setEvents(events.filter((e) => e.id !== eventId));
+	};
+
+	return (
+		<Layout>
+			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
+				{/* Add some margin to the left and right */}
+				<div className="w-full max-w-6xl px-4 mt-4">
+					{/* Full height minus header/footer */}
+					<div className="h-[calc(100vh-200px)] overflow-hidden rounded-lg shadow-md">
+						<CalendarView
+							events={events}
+							onEventSubmit={handleEventSubmit}
+							onDeleteEvent={handleDeleteEvent}
+						/>
+					</div>
+				</div>
+			</div>
+		</Layout>
+	);
+}
+
+export default Schedule;
+
+/*
 import { useState, useEffect, useContext } from 'react';
 import DayColumn from '../components/DayColumn';
 import { AuthContext } from '../context/AuthContext';
@@ -133,7 +198,7 @@ function Schedule() {
 					className="p-2 bg-blue-600 text-white rounded shadow-md hover:bg-blue-700">
 					Next
 				</button>
-				{/* Button to toggle between all schedules and user's schedule */}
+				
 				<button
 					onClick={() => setShowUserSchedule(!showUserSchedule)}
 					className="p-2 bg-green-600 text-white rounded shadow-md hover:bg-green-700">
@@ -156,3 +221,4 @@ function Schedule() {
 }
 
 export default Schedule;
+*/

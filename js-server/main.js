@@ -3,13 +3,9 @@ const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
-const underPressure = require('@fastify/under-pressure');
-const WebSocket = require('ws');
 const rateLimit = require('@fastify/rate-limit');
 const metrics = require('fastify-metrics');
-const os = require('os');
 const fs = require('fs');
-const logger = require('./logger');
 const path = require('path');
 
 const { getAssignedSlots } = require('./functions/createFiles');
@@ -29,6 +25,7 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
+
 const key = fs.readFileSync('../certificates/server-key.pem');
 const cert = fs.readFileSync('../certificates/server-cert.pem');
 
@@ -82,7 +79,7 @@ app.addHook('preParsing', async (request, reply, payload) => {
 });
 
 app.register(rateLimit, {
-	max: 150,
+	max: 1500000,
 	timeWindow: '1 minute',
 });
 
@@ -92,6 +89,7 @@ app.register(require('./connector'));
 // Routes
 app.register(require('./routes/authentication'));
 app.register(require('./routes/serverpanel'));
+app.register(require('./routes/shifts'));
 app.register(require('./routes/admin'));
 app.register(require('./routes/template'));
 app.register(require('./routes/statistics'));
@@ -181,6 +179,7 @@ app.addHook('onReady', async () => {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
 
+		/*
 		// Populate the cache on server boot
 		await updateHDCache(client); // <-- Populate cache with data at boot
 
@@ -206,6 +205,7 @@ app.addHook('onReady', async () => {
 				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
+		*/
 	} catch (err) {
 		app.log.error('PostgreSQL connection error:', err);
 		throw new Error('PostgreSQL connection is not established');

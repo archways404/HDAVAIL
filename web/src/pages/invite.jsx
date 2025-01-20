@@ -16,10 +16,9 @@ const Invite = () => {
 	const { user } = useContext(AuthContext);
 
 	// Form states
-	const [username, setUsername] = useState('');
+	const [email, setEmail] = useState('');
 	const [firstName, setFirstName] = useState('');
 	const [lastName, setLastName] = useState('');
-	const [email, setEmail] = useState('');
 	const [role, setRole] = useState('worker'); // default role
 
 	// To track any errors or success messages
@@ -31,11 +30,10 @@ const Invite = () => {
 		e.preventDefault();
 
 		const inviteData = {
-			username: username,
+			email: email,
 			first_name: firstName,
 			last_name: lastName,
-			email: email,
-			type: role,
+			role: role,
 		};
 
 		try {
@@ -55,7 +53,6 @@ const Invite = () => {
 			}
 
 			// Reset form and show success message
-			setUsername('');
 			setEmail('');
 			setFirstName('');
 			setLastName('');
@@ -78,23 +75,24 @@ const Invite = () => {
 				<form
 					onSubmit={handleSubmit}
 					className="space-y-6">
-					{/* Username Field */}
+					{/* Email Field */}
 					<div>
 						<Label
-							htmlFor="username"
+							htmlFor="email"
 							className="text-gray-700 dark:text-gray-300">
-							Username:
+							Email:
 						</Label>
 						<Input
-							id="username"
-							type="text"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
+							id="email"
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
 							required
-							placeholder="Enter username"
+							placeholder="Enter email"
 							className="mt-1"
 						/>
 					</div>
+
 					{/* First Name Field */}
 					<div>
 						<Label
@@ -127,24 +125,6 @@ const Invite = () => {
 							onChange={(e) => setLastName(e.target.value)}
 							required
 							placeholder="Enter last name"
-							className="mt-1"
-						/>
-					</div>
-
-					{/* Email Field */}
-					<div>
-						<Label
-							htmlFor="email"
-							className="text-gray-700 dark:text-gray-300">
-							Email:
-						</Label>
-						<Input
-							id="email"
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							required
-							placeholder="Enter email"
 							className="mt-1"
 						/>
 					</div>

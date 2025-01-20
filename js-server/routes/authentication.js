@@ -9,6 +9,8 @@ const { calculateRequest } = require('../functions/processingTime');
 const { fetchDataStart } = require('../functions/processingTime');
 const { fetchDataEnd } = require('../functions/processingTime');
 
+const { createAuthLog } = require('../functions/db_logs');
+
 async function routes(fastify, options) {
 	fastify.addHook('onRequest', (request, reply, done) => {
 		startRequest(request);
@@ -29,14 +31,14 @@ async function routes(fastify, options) {
 		{
 			config: {
 				rateLimit: {
-					max: 15,
+					max: 15000000,
 					timeWindow: '15 minutes',
 					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
 			},
 		},
 		async (request, reply) => {
-			const { username, password, deviceId } = request.body;
+			const { email, password, deviceId } = request.body;
 			const ip = request.ip;
 
 			if (!deviceId) {
@@ -47,40 +49,66 @@ async function routes(fastify, options) {
 
 			fetchDataStart(request);
 
-			const user = await login(client, username, password, ip, deviceId);
+			const user = await login(client, email, password, ip, deviceId);
 
-			fetchDataEnd(request);
+			console.log('user:', user);
+			console.log('ip:', ip);
 
-			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
-				{ expiresIn: '15m' }
-			);
+			if (!user.error) {
+				const authToken = fastify.jwt.sign(
+					{
+						uuid: user.user_id,
+						email: user.email,
+						role: user.role,
+						first: user.first_name,
+						last: user.last_name,
+					},
+					{ expiresIn: '15m' }
+				);
 
-			reply.setCookie('authToken', authToken, {
-				httpOnly: true,
-				sameSite: 'None',
-				secure: true,
-				path: '/',
-			});
+				reply.setCookie('authToken', authToken, {
+					httpOnly: true,
+					sameSite: 'None',
+					secure: true,
+					path: '/',
+				});
 
-			return reply.send({ message: 'Login successful' });
+				await createAuthLog(client, user.user_id, ip, deviceId, true, null);
+
+				fetchDataEnd(request);
+				return reply.send({ message: 'Login successful' });
+			} else if (user.error === 'Invalid password') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else if (user.error === 'Account with email does not exist') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else {
+				fetchDataEnd(request);
+				return reply.send({
+					message: user.error,
+				});
+			}
 		}
 	);
 
 	// CREATES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { username, first_name, last_name, email, type } = request.body;
+		const { email, first_name, last_name, role } = request.body;
 		const client = await fastify.pg.connect();
 		try {
 			fetchDataStart(request);
 
 			const status = await createNewUser(
 				client,
-				username,
+				email,
 				first_name,
 				last_name,
-				email,
-				type
+				role
 			);
 
 			fetchDataEnd(request);
@@ -229,8 +257,15 @@ async function routes(fastify, options) {
 		{ preValidation: fastify.verifyJWT },
 		async (request, reply) => {
 			const user = request.user;
+			console.log('user: ', user);
 			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
+				{
+					uuid: user.uuid,
+					email: user.email,
+					role: user.role,
+					first: user.first,
+					last: user.last,
+				},
 				{ expiresIn: '15m' }
 			);
 
