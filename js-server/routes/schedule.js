@@ -74,6 +74,75 @@ async function routes(fastify, options) {
 			return reply.status(500).send({ error: 'Failed to fetch schedule' });
 		}
 	});
+
+	// Get Active Shifts for a Schedule Group
+	fastify.get('/getActiveShiftsForGroup', async (request, reply) => {
+		try {
+			const { group_id } = request.query;
+
+			// Validate that `group_id` is provided
+			if (!group_id) {
+				return reply.status(400).send({ error: 'Group ID is required' });
+			}
+
+			// Query to fetch active shifts for the given group_id
+			const query = `
+			SELECT 
+				shift_id, 
+				shift_type_id, 
+				assigned_to, 
+				start_time, 
+				end_time, 
+				date, 
+				schedule_group_id
+			FROM 
+				active_shifts
+			WHERE 
+				schedule_group_id = $1
+		`;
+
+			// Execute the query
+			const { rows } = await fastify.pg.query(query, [group_id]);
+
+			// Send the results back to the client
+			return reply.send(rows);
+		} catch (error) {
+			console.error('Error fetching active shifts:', error.message);
+			return reply.status(500).send({ error: 'Failed to fetch active shifts' });
+		}
+	});
+
+	// Get Schedule Groups for a User
+	fastify.get('/getScheduleGroups', async (request, reply) => {
+		try {
+			const { user_id } = request.query;
+
+			// Check if `user_id` is provided
+			if (!user_id) {
+				return reply.status(400).send({ error: 'User ID is required' });
+			}
+
+			// Query to fetch schedule groups for the user
+			const query = `
+			SELECT sg.group_id, sg.name, sg.description
+			FROM account_schedule_groups as asg
+			JOIN schedule_groups as sg
+			ON asg.group_id = sg.group_id
+			WHERE asg.user_id = $1
+		`;
+
+			// Execute the query
+			const { rows } = await fastify.pg.query(query, [user_id]);
+
+			// Respond with the schedule groups
+			return reply.send(rows);
+		} catch (error) {
+			console.error('Get schedule groups error:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to fetch schedule groups' });
+		}
+	});
 }
 
 module.exports = routes;

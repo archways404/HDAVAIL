@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import CalendarView from '../temp/CalendarView';
@@ -9,6 +9,39 @@ function Schedule() {
 	if (!user) {
 		return null;
 	}
+
+	const [scheduleGroups, setScheduleGroups] = useState([]);
+	const [selectedGroup, setSelectedGroup] = useState(
+		() => localStorage.getItem('selectedGroup') || ''
+	);
+
+	useEffect(() => {
+		if (user) {
+			fetchScheduleGroups();
+		}
+	}, [user]);
+
+	const fetchScheduleGroups = async () => {
+		try {
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR +
+					'/getScheduleGroups?user_id=' +
+					user.uuid
+			);
+			const data = await response.json();
+			setScheduleGroups(data);
+			console.log('data', data);
+		} catch (error) {
+			console.error('Error fetching groups:', error);
+		}
+	};
+
+	// Handle dropdown selection and save to localStorage
+	const handleGroupChange = (e) => {
+		const value = e.target.value;
+		setSelectedGroup(value);
+		localStorage.setItem('selectedGroup', value); // Save to localStorage
+	};
 
 	// Central events state
 	const [events, setEvents] = useState([
@@ -45,6 +78,28 @@ function Schedule() {
 		<Layout>
 			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
 				{/* Add some margin to the left and right */}
+				{/* Dropdown to select a schedule group */}
+				<div className="mb-4">
+					<label
+						htmlFor="scheduleGroup"
+						className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+						Select Schedule Group
+					</label>
+					<select
+						id="scheduleGroup"
+						value={selectedGroup}
+						onChange={handleGroupChange} // Handle changes
+						className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-800 dark:text-gray-200">
+						<option value="">Select a Group</option>
+						{scheduleGroups.map((group) => (
+							<option
+								key={group.group_id}
+								value={group.group_id}>
+								{group.name}
+							</option>
+						))}
+					</select>
+				</div>
 				<div className="w-full max-w-6xl px-4 mt-4">
 					{/* Full height minus header/footer */}
 					<div className="h-[calc(100vh-200px)] overflow-hidden rounded-lg shadow-md">
