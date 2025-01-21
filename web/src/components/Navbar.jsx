@@ -78,6 +78,17 @@ const Navbar = () => {
 						</li>
 						<li>
 							<Link
+								to="/handle-status"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Manage Status
+							</Link>
+						</li>
+						<li>
+							<Link
 								to="/schedule"
 								className={`${
 									theme === 'dark'

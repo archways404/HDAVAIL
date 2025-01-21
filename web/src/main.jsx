@@ -25,6 +25,7 @@ import CreateSchedule from './pages/createschedule';
 import ServerPanel from './pages/serverpanel';
 import EmailStatus from './pages/emailstatus';
 import TestHandleShifts from './pages/testHandleShifts';
+import StatusMsg from './pages/statusmsg';
 
 import './global.css';
 
@@ -152,6 +153,15 @@ createRoot(document.getElementById('root')).render(
 								<AuthWrapper
 									allowedUserRoles={['admin', 'worker', 'maintainer']}>
 									<Welcome />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/handle-status"
+							element={
+								<AuthWrapper
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
+									<StatusMsg />
 								</AuthWrapper>
 							}
 						/>
