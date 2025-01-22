@@ -14,12 +14,22 @@ function Schedule() {
 	const [selectedGroup, setSelectedGroup] = useState(
 		() => localStorage.getItem('selectedGroup') || ''
 	);
+	const [events, setEvents] = useState([]);
 
 	useEffect(() => {
 		if (user) {
 			fetchScheduleGroups();
 		}
 	}, [user]);
+
+	useEffect(() => {
+		// Fetch schedule only if a valid group is selected
+		if (selectedGroup) {
+			fetchActiveShifts(selectedGroup);
+		} else {
+			setEvents([]); // Clear events if no group is selected
+		}
+	}, [selectedGroup]);
 
 	const fetchScheduleGroups = async () => {
 		try {
@@ -36,6 +46,23 @@ function Schedule() {
 		}
 	};
 
+	const fetchActiveShifts = async (group_id) => {
+		try {
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_BASE_ADDR
+				}/getActiveShiftsForGroup?group_id=${group_id}`
+			);
+			const data = await response.json();
+			setEvents(data);
+			console.log('shift: ', data);
+			//const formattedEvents = transformShiftData(data);
+			//setEvents(formattedEvents);
+		} catch (error) {
+			console.error('Error fetching active shifts:', error);
+		}
+	};
+
 	// Handle dropdown selection and save to localStorage
 	const handleGroupChange = (e) => {
 		const value = e.target.value;
@@ -44,6 +71,7 @@ function Schedule() {
 	};
 
 	// Central events state
+	/*
 	const [events, setEvents] = useState([
 		{
 			id: '1',
@@ -58,6 +86,7 @@ function Schedule() {
 			end: '2025-01-16T15:30:00',
 		},
 	]);
+	*/
 
 	// Event Handlers (create, update, delete)
 	const handleEventSubmit = (event) => {
