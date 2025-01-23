@@ -67,9 +67,8 @@ const ManageUsers = () => {
 		fetchUsers(value);
 	};
 
-	// Handle search filtering on the client side by username, first_name, and last_name
 	const filteredUsers = users.filter((user) =>
-		[user.username, user.first_name, user.last_name]
+		[user.email, user.first_name, user.last_name]
 			.join(' ')
 			.toLowerCase()
 			.includes(searchQuery.toLowerCase())
@@ -98,7 +97,7 @@ const ManageUsers = () => {
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							placeholder="Search for user"
-							className="mt-1 w-full p-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:text-white dark:border-gray-600"
+							className="mt-1 w-full"
 						/>
 					</div>
 
@@ -133,15 +132,15 @@ const ManageUsers = () => {
 							{filteredUsers.length > 0 ? (
 								filteredUsers.map((user) => (
 									<li
-										key={user.uuid}
+										key={user.user_id}
 										className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
 										<p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
 											{user.first_name} {user.last_name}
 										</p>
 										<p className="text-gray-700 dark:text-gray-400">
-											{user.username}
+											{user.email}
 										</p>
-										<Link to={`/user/${user.uuid}`}>
+										<Link to={`/user/${user.user_id}`}>
 											<Button className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white">
 												View Details
 											</Button>

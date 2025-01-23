@@ -24,57 +24,6 @@ async function routes(fastify, options) {
 		done();
 	});
 
-	fastify.get('/scheduleTemplate', async (request, reply) => {
-		try {
-			const scheduleTemplate = createSchedule();
-			return reply.send(scheduleTemplate);
-		} catch (error) {
-			console.error('Template error:', error.message);
-			return reply
-				.status(500)
-				.send({ error: 'Failed to crate using template' });
-		}
-	});
-
-	fastify.post('/createSchedule', async (request, reply) => {
-		try {
-			console.log('req.body', request.body);
-		} catch (error) {
-			console.error('Template error:', error.message);
-			return reply
-				.status(500)
-				.send({ error: 'Failed to crate using template' });
-		}
-	});
-
-	// View Schedule Route
-	fastify.get('/viewSchedule', async (request, reply) => {
-		try {
-			const { uuid } = request.query;
-			let globalSchedule;
-
-			if (!uuid) {
-				// Use the cache-handling function
-				globalSchedule = await handleHDCache(fastify.pg);
-			} else {
-				// Fetch schedule for specific UUID
-				try {
-					globalSchedule = await fetchSchedule(fastify.pg, uuid);
-				} catch (error) {
-					console.error('Template error:', error.message);
-					return reply
-						.status(500)
-						.send({ error: 'Failed to crate using template' });
-				}
-			}
-
-			return reply.send(globalSchedule);
-		} catch (error) {
-			console.error('View schedule error:', error.message);
-			return reply.status(500).send({ error: 'Failed to fetch schedule' });
-		}
-	});
-
 	// Get Active Shifts for a Schedule Group
 	fastify.get('/getActiveShiftsForGroup', async (request, reply) => {
 		try {
@@ -187,3 +136,56 @@ async function routes(fastify, options) {
 }
 
 module.exports = routes;
+
+/* OLD
+fastify.get('/scheduleTemplate', async (request, reply) => {
+		try {
+			const scheduleTemplate = createSchedule();
+			return reply.send(scheduleTemplate);
+		} catch (error) {
+			console.error('Template error:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to crate using template' });
+		}
+	});
+
+	fastify.post('/createSchedule', async (request, reply) => {
+		try {
+			console.log('req.body', request.body);
+		} catch (error) {
+			console.error('Template error:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to crate using template' });
+		}
+	});
+
+	// View Schedule Route
+	fastify.get('/viewSchedule', async (request, reply) => {
+		try {
+			const { uuid } = request.query;
+			let globalSchedule;
+
+			if (!uuid) {
+				// Use the cache-handling function
+				globalSchedule = await handleHDCache(fastify.pg);
+			} else {
+				// Fetch schedule for specific UUID
+				try {
+					globalSchedule = await fetchSchedule(fastify.pg, uuid);
+				} catch (error) {
+					console.error('Template error:', error.message);
+					return reply
+						.status(500)
+						.send({ error: 'Failed to crate using template' });
+				}
+			}
+
+			return reply.send(globalSchedule);
+		} catch (error) {
+			console.error('View schedule error:', error.message);
+			return reply.status(500).send({ error: 'Failed to fetch schedule' });
+		}
+	});
+*/

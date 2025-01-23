@@ -2,17 +2,47 @@ const { getUsers } = require('../functions/search');
 const { getUserWithUUID } = require('../functions/search');
 
 async function routes(fastify, options) {
+	// Fastify endpoint to get accounts
 	fastify.get('/get-accounts', async (request, reply) => {
 		const client = await fastify.pg.connect();
 		try {
+			// Query parameter (optional for filtering by type)
 			const { type } = request.query;
+
+			// Fetch users based on the query
 			const users = await getUsers(client, type);
+
+			// Send the response
 			return reply.send(users);
 		} catch (error) {
 			console.error('Error fetching users:', error.message);
 			return reply.status(500).send({ error: 'Failed to fetch users' });
+		} finally {
+			client.release();
 		}
 	});
+
+	// Helper function to fetch users
+	async function getUsers(client, type) {
+		// Base query
+		let query = `
+        SELECT user_id, email, first_name, last_name, role 
+        FROM account
+    `;
+
+		// Add a WHERE clause if 'type' is provided
+		const values = [];
+		if (type) {
+			query += ` WHERE role = $1`;
+			values.push(type);
+		}
+
+		// Execute the query
+		const result = await client.query(query, values);
+
+		// Return the rows
+		return result.rows;
+	}
 
 	fastify.get('/get-user', async (request, reply) => {
 		const { uuid } = request.query;
@@ -21,13 +51,63 @@ async function routes(fastify, options) {
 		}
 		const client = await fastify.pg.connect();
 		try {
-			const user = await getUserWithUUID(client, uuid);
-			return reply.send(user);
+			// Fetch user details
+			const userDetails = await getUserDetails(client, uuid);
+			if (!userDetails) {
+				return reply.status(404).send({ error: 'User not found' });
+			}
+			// Fetch account lockout details
+			const lockoutDetails = await getAccountLockout(client, uuid);
+			// Fetch schedule groups
+			const scheduleGroups = await getScheduleGroups(client, uuid);
+			// Combine and send the response
+			const response = {
+				userDetails,
+				lockoutDetails,
+				scheduleGroups,
+			};
+			return reply.send(response);
 		} catch (error) {
 			console.error('Error fetching user:', error.message);
 			return reply.status(500).send({ error: 'Failed to fetch user' });
+		} finally {
+			client.release();
 		}
 	});
+
+	// Helper function to get user details (excluding sensitive fields)
+	async function getUserDetails(client, uuid) {
+		const query = `
+        SELECT user_id, email, first_name, last_name, notification_email, role
+        FROM account
+        WHERE user_id = $1
+    `;
+		const result = await client.query(query, [uuid]);
+		return result.rows[0];
+	}
+
+	// Helper function to get account lockout details
+	async function getAccountLockout(client, uuid) {
+		const query = `
+        SELECT *
+        FROM account_lockout
+        WHERE user_id = $1
+    `;
+		const result = await client.query(query, [uuid]);
+		return result.rows[0]; // Assuming one lockout record per user
+	}
+
+	// Helper function to get schedule groups for the user
+	async function getScheduleGroups(client, uuid) {
+		const query = `
+        SELECT sg.group_id, sg.name
+        FROM schedule_groups sg
+        INNER JOIN account_schedule_groups asg ON sg.group_id = asg.group_id
+        WHERE asg.user_id = $1
+    `;
+		const result = await client.query(query, [uuid]);
+		return result.rows; // Return all associated schedule groups
+	}
 
 	/*
 	// CREAETES A NEW USER AND SENDS AN INVITE VIA EMAIL
