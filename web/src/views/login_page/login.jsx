@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
-import Layout from '../components/Layout';
-import DisplayStatus from '../components/DisplayStatus';
-import { AuthContext } from '../context/AuthContext';
-import LoadingScreen from '../components/LoadingScreen';
+import Layout from '../../components/Layout';
+import DisplayStatus from '../../components/DisplayStatus';
+import { AuthContext } from '../../context/AuthContext';
+import LoadingScreen from '../../components/LoadingScreen';
 
 function Login() {
 	const [email, setEmail] = useState('');

@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import Layout from '../components/Layout';
+import { AuthContext } from '../../context/AuthContext';
+import Layout from '../../components/Layout';
 
 const daysOfWeek = [
 	{ id: 1, name: 'Monday' },

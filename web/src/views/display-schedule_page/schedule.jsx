@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import Layout from '../components/Layout';
-import CalendarView from '../temp/CalendarView';
+import { AuthContext } from '../../context/AuthContext';
+import Layout from '../../components/Layout';
+import CalendarView from '../../temp/CalendarView';
 
 function Schedule() {
 	const { user } = useContext(AuthContext);

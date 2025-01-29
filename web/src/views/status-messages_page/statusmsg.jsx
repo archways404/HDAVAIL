@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import Layout from '../components/Layout';
+import { AuthContext } from '../../context/AuthContext';
+import Layout from '../../components/Layout';
 
 const StatusMsg = () => {
 	const { user } = useContext(AuthContext);

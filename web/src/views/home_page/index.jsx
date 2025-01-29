@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import Layout from '../components/Layout';
-import DisplayStatus from '../components/DisplayStatus';
+import Layout from '../../components/Layout';
+import DisplayStatus from '../../components/DisplayStatus';
 
 function Index() {
 	return (

@@ -5,28 +5,31 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 
-import Index from './pages/index.jsx';
-import Login from './pages/login.jsx';
-import ForgotPass from './pages/forgotpass.jsx';
-import ResetPass from './pages/resetpass.jsx';
-import SetPass from './pages/setpass.jsx';
+import Index from './views/home_page/index.jsx';
+import Login from './views/login_page/login.jsx';
+import ForgotPass from './views/forgot-password_page/forgotpass.jsx';
+import ResetPass from './views/reset-password_page/resetpass';
+import SetPass from './views/set-password_page/setpass.jsx';
 import Logout from './components/Logout.jsx';
-import NotFound from './pages/notFound.jsx';
-import Welcome from './pages/welcome.jsx';
-import Invite from './pages/invite.jsx';
-import Schedule from './pages/schedule';
+import NotFound from './views/not-found_page/notFound';
+import Welcome from './views/welcome/welcome_page.jsx';
+import Invite from './views/invite_page/invite';
+import Schedule from './views/display-schedule_page/schedule';
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
-import CalendarLink from './pages/calendarlink';
-import ManageUsers from './pages/manageusers';
-import UserDetail from './pages/userdetail';
-import ServerInfo from './pages/serverinfo';
-import CreateSchedule from './pages/createschedule';
-import ServerPanel from './pages/serverpanel';
-import EmailStatus from './pages/emailstatus';
-import TestHandleShifts from './pages/testHandleShifts';
-import StatusMsg from './pages/statusmsg';
-import CreateTemplate from './pages/createTemplate';
+
+import CalendarLink from './views/calendar-link_page/calendarlink';
+import ManageUsers from './views/manage-users_page/manageusers';
+import UserDetail from './views/display-user-details_page/userdetail';
+import ServerPanel from './views/server-panel_page/serverpanel';
+import EmailStatus from './views/email-status_page/emailstatus';
+import TestHandleShifts from './views/create-shifttypes_page/testHandleShifts';
+import CreateTemplate from './views/create-template_page/createTemplate';
+import StatusMsg from './views/status-messages_page/statusmsg';
+
+import ServerInfo from './old/serverinfo';
+import CreateSchedule from './old/createschedule';
+
 
 import './global.css';
 

@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import Layout from '../components/Layout';
+import Layout from '../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 
 const Invite = () => {
 	const { user } = useContext(AuthContext);

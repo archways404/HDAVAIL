@@ -6,8 +6,8 @@ import {
 	CheckBadgeIcon,
 } from '@heroicons/react/24/solid';
 import { useParams } from 'react-router-dom';
-import Layout from '../components/Layout';
-import LoadingScreen from '../components/LoadingScreen';
+import Layout from '../../components/Layout';
+import LoadingScreen from '../../components/LoadingScreen';
 import { useToast } from '@/hooks/use-toast';
 
 const UserDetail = () => {
@@ -208,7 +208,6 @@ const UserDetail = () => {
 			)}
 		</Layout>
 	);
-
 };
 
 export default UserDetail;

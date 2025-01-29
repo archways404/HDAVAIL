@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import Layout from '../components/Layout';
+import Layout from '../../components/Layout';
 
 function ResetPass() {
 	const [password, setPassword] = useState('');

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import Layout from '../components/Layout';
+import { AuthContext } from '../../context/AuthContext';
+import Layout from '../../components/Layout';
 
 const TestHandleShifts = () => {
 	const { user } = useContext(AuthContext);
