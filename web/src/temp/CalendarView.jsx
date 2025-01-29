@@ -82,7 +82,7 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 					},
 					timeGridWeek: {
 						firstDay: 1,
-						slotDuration: '00:15:00',
+						slotDuration: '00:30:00',
 						slotLabelInterval: '01:00:00',
 						slotMinTime: '06:00:00', // Start time: 8 AM
 						slotMaxTime: '21:00:00', // End time: 8 PM

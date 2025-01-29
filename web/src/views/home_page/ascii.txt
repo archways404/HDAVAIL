@@ -1,19 +1,14 @@
-import { Link } from 'react-router-dom';
-import Layout from '../../components/Layout';
-import DisplayStatus from '../../components/DisplayStatus';
+'7MM"""Mq.           '7MM"""Yb.    .M"""bgd '7MMF'  '7MMF''7MMF''7MM"""YMM MMP""MM""YMM 
+  MM   'MM.            MM    'Yb. ,MI    "Y   MM      MM    MM    MM    '7 P'   MM   '7 
+  MM   ,M9   pd""b.    MM     'Mb 'MMb.       MM      MM    MM    MM   d        MM      
+  MMmmdM9   (O)  '8b   MM      MM   'YMMNq.   MMmmmmmmMM    MM    MM""MM        MM      
+  MM  YM.        ,89   MM     ,MP .     'MM   MM      MM    MM    MM   Y        MM      
+  MM   'Mb.    ""Yb.   MM    ,dP' Mb     dM   MM      MM    MM    MM            MM      
+.JMML. .JMM.      88 .JMMmmmdP'   P"Ybmmd"  .JMML.  .JMML..JMML..JMML.        .JMML.    
+            (O)  .M'                                                                    
+             bmmmd'                                                                     
 
-function Index() {
-	return (
-		<Layout>
-			<div className="absolute bottom-4 right-4">
-				<DisplayStatus />
-			</div>
-			{/* Flex container for ASCII Art and Button */}
-			<div className="flex flex-col items-center justify-between min-h-screen text-center w-full">
-				{/* ASCII Art - Ensured proper spacing and wrapping */}
-				<pre className="text-xl font-mono leading-none bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent whitespace-pre-wrap max-w-full mt-32 px-4">
-					{`
-
+                                                      
                                                    dddddddd                                                                                         
                      333333333333333               d::::::d                 hhhhhhh               iiii     ffffffffffffffff           tttt          
                     3:::::::::::::::33             d::::::d                 h:::::h              i::::i   f::::::::::::::::f       ttt:::t          
@@ -31,7 +26,40 @@ rr::::::rrrrr::::::r    3:::::::::::3  d:::::::ddddd:::::d s::::::ssss:::::s h::
  r:::::r            3::::::33333::::::3 d:::::::::::::::::ds::::::::::::::s  h:::::h     h:::::hi::::::if:::::::f                  tt::::::::::::::t
  r:::::r            3:::::::::::::::33   d:::::::::ddd::::d s:::::::::::ss   h:::::h     h:::::hi::::::if:::::::f                    tt:::::::::::tt
  rrrrrrr             333333333333333      ddddddddd   ddddd  sssssssssss     hhhhhhh     hhhhhhhiiiiiiiifffffffff                      ttttttttttt  
-                                                                                                                                                    
+
+
+
+                                                                                               *******    ****  *******    ******** **      ** ** ******** **********
+/**////**  */// */**////**  **////// /**     /**/**/**///// /////**/// 
+/**   /** /    /*/**    /**/**       /**     /**/**/**          /**    
+/*******     *** /**    /**/*********/**********/**/*******     /**    
+/**///**    /// */**    /**////////**/**//////**/**/**////      /**    
+/**  //**  *   /*/**    **        /**/**     /**/**/**          /**    
+/**   //**/ **** /*******   ******** /**     /**/**/**          /**    
+//     //  ////  ///////   ////////  //      // // //           //     
+
+88""Yb 88888 8888b.  .dP"Y8 88  88 88 888888 888888 
+88__dP   .dP  8I  Yb 'Ybo." 88  88 88 88__     88   
+88"Yb  o 'Yb  8I  dY o.'Y8b 888888 88 88""     88   
+88  Yb YbodP 8888Y"  8bodP' 88  88 88 88       88   
+
+:::::::::   ::::::::  :::::::::   ::::::::  :::    ::: ::::::::::: :::::::::: ::::::::::: 
+:+:    :+: :+:    :+: :+:    :+: :+:    :+: :+:    :+:     :+:     :+:            :+:     
++:+    +:+        +:+ +:+    +:+ +:+        +:+    +:+     +:+     +:+            +:+     
++#++:++#:      +#++:  +#+    +:+ +#++:++#++ +#++:++#++     +#+     :#::+::#       +#+     
++#+    +#+        +#+ +#+    +#+        +#+ +#+    +#+     +#+     +#+            +#+     
+#+#    #+# #+#    #+# #+#    #+# #+#    #+# #+#    #+#     #+#     #+#            #+#     
+###    ###  ########  #########   ########  ###    ### ########### ###            ###     
+
+                                                                          
+          _|_|_|          _|            _|        _|      _|_|    _|      
+_|  _|_|        _|    _|_|_|    _|_|_|  _|_|_|          _|      _|_|_|_|  
+_|_|        _|_|    _|    _|  _|_|      _|    _|  _|  _|_|_|_|    _|      
+_|              _|  _|    _|      _|_|  _|    _|  _|    _|        _|      
+_|        _|_|_|      _|_|_|  _|_|_|    _|    _|  _|    _|          _|_|  
+                                                                          
+                                                                          
+                                                                                                                                                                                                         
                                                                                                                                                     
                                                                                                                                                     
                                                                                                                                                     
@@ -42,20 +70,3 @@ rr::::::rrrrr::::::r    3:::::::::::3  d:::::::ddddd:::::d s::::::ssss:::::s h::
                                                                                         
                                                                                         
 
-					`}
-				</pre>
-
-				{/* Centered Button */}
-				<div className="mt-auto mb-16">
-					<Link
-						to="/login"
-						className="px-6 py-3 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-2xl hover:from-green-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-						Login
-					</Link>
-				</div>
-			</div>
-		</Layout>
-	);
-}
-
-export default Index;
