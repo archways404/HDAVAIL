@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 async function getUsers(client, type = null) {
 	try {
 		let query;

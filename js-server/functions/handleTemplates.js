@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 async function list_slot_types(client) {
 	try {
 		const query = `SELECT * FROM list_slot_types()`;

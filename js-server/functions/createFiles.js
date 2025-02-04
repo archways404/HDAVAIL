@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 const fs = require('fs');
 const path = require('path');
 const ics = require('ics');

@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 const Holidays = require('date-holidays');
 const hd = new Holidays('SE');
 

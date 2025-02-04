@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 async function fetchHDCache(client) {
 	try {
 		let query = `SELECT * FROM get_user_slots()`;

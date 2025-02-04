@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 // Add a new status message
 async function addStatusMessage(client, message, type, active = true) {
 	const result = await client.query(
