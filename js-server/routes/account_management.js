@@ -50,6 +50,157 @@ async function routes(fastify, options) {
 		}
 	});
 
+	fastify.post('/assignScheduleGroup', async (request, reply) => {
+		try {
+			const { user_id, group_id } = request.body;
+			if (!user_id || !group_id) {
+				return reply
+					.status(400)
+					.send({ error: 'user_id and group_id are required' });
+			}
+
+			// Optionally, check if this relationship already exists to avoid duplicates.
+			const checkQuery = `
+      SELECT * FROM account_schedule_groups
+      WHERE user_id = $1 AND group_id = $2
+    `;
+			const checkResult = await fastify.pg.query(checkQuery, [
+				user_id,
+				group_id,
+			]);
+			if (checkResult.rows.length > 0) {
+				return reply
+					.status(409)
+					.send({ error: 'Schedule group already assigned to the user' });
+			}
+
+			const query = `
+      INSERT INTO account_schedule_groups (user_id, group_id)
+      VALUES ($1, $2)
+      RETURNING *
+    `;
+			const { rows } = await fastify.pg.query(query, [user_id, group_id]);
+			return reply.status(201).send(rows[0]);
+		} catch (error) {
+			console.error('Error assigning schedule group:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to assign schedule group' });
+		}
+	});
+
+	fastify.delete('/removeScheduleGroup', async (request, reply) => {
+		try {
+			const { user_id, group_id } = request.query;
+			if (!user_id || !group_id) {
+				return reply
+					.status(400)
+					.send({ error: 'user_id and group_id are required' });
+			}
+
+			const query = `
+      DELETE FROM account_schedule_groups
+      WHERE user_id = $1 AND group_id = $2
+      RETURNING *
+    `;
+			const { rows } = await fastify.pg.query(query, [user_id, group_id]);
+			if (rows.length === 0) {
+				return reply
+					.status(404)
+					.send({ error: 'Schedule group assignment not found' });
+			}
+			return reply.send({ message: 'Schedule group removed successfully' });
+		} catch (error) {
+			console.error('Error removing schedule group:', error.message);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to remove schedule group' });
+		}
+	});
+
+	fastify.post('/unlockAccount', async (request, reply) => {
+		try {
+			const { user_id } = request.body;
+			if (!user_id) {
+				return reply.status(400).send({ error: 'User ID is required' });
+			}
+
+			const query = `
+      UPDATE account_lockout
+      SET locked = false,
+          failed_attempts = 0,
+          unlock_time = NULL
+      WHERE user_id = $1
+      RETURNING *
+    `;
+			const { rows } = await fastify.pg.query(query, [user_id]);
+			if (rows.length === 0) {
+				return reply.status(404).send({ error: 'Lockout record not found' });
+			}
+			return reply.send(rows[0]);
+		} catch (error) {
+			console.error('Error unlocking account:', error.message);
+			return reply.status(500).send({ error: 'Failed to unlock account' });
+		}
+	});
+
+	fastify.post('/lockAccount', async (request, reply) => {
+		try {
+			const { user_id } = request.body;
+			if (!user_id) {
+				return reply.status(400).send({ error: 'User ID is required' });
+			}
+
+			const query = `
+      UPDATE account_lockout
+      SET locked = true,
+          unlock_time = NOW() + interval '1000 years'
+      WHERE user_id = $1
+      RETURNING *
+    `;
+			const { rows } = await fastify.pg.query(query, [user_id]);
+			if (rows.length === 0) {
+				return reply.status(404).send({ error: 'Lockout record not found' });
+			}
+			return reply.send(rows[0]);
+		} catch (error) {
+			console.error('Error locking account:', error.message);
+			return reply.status(500).send({ error: 'Failed to lock account' });
+		}
+	});
+
+	fastify.post('/updateUserRole', async (request, reply) => {
+		try {
+			const { user_id, role } = request.body;
+			if (!user_id || !role) {
+				return reply
+					.status(400)
+					.send({ error: 'User ID and role are required' });
+			}
+
+			// Validate that the role is one of the allowed options.
+			const allowedRoles = ['Admin', 'Worker', 'Maintainer'];
+			if (!allowedRoles.includes(role)) {
+				return reply.status(400).send({ error: 'Invalid role provided' });
+			}
+
+			const query = `
+      UPDATE account
+      SET role = $2
+      WHERE user_id = $1
+      RETURNING user_id, role
+    `;
+			const { rows } = await fastify.pg.query(query, [user_id, role]);
+			if (rows.length === 0) {
+				return reply.status(404).send({ error: 'User not found' });
+			}
+			return reply.send(rows[0]);
+		} catch (error) {
+			console.error('Error updating user role:', error.message);
+			return reply.status(500).send({ error: 'Failed to update user role' });
+		}
+	});
+
 	// Helper function to fetch users
 	async function getUsers(client, type) {
 		// Base query

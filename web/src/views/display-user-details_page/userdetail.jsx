@@ -18,9 +18,9 @@ const UserDetail = () => {
 	const [error, setError] = useState(null);
 	const [availableGroups, setAvailableGroups] = useState([]);
 	const [selectedGroup, setSelectedGroup] = useState('');
+	const [role, setRole] = useState('');
 	const { toast } = useToast();
 
-	// Fetch user details
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
@@ -31,10 +31,10 @@ const UserDetail = () => {
 					throw new Error('Failed to fetch user details');
 				}
 				const data = await response.json();
-
 				if (data) {
 					setUser(data);
 					setEmail(data.userDetails.email);
+					setRole(data.userDetails.role); // initialize the role state
 				} else {
 					setError('User not found');
 				}
@@ -44,7 +44,6 @@ const UserDetail = () => {
 				setLoading(false);
 			}
 		};
-
 		fetchUser();
 	}, [uuid]);
 
@@ -75,6 +74,47 @@ const UserDetail = () => {
 			fetchGroups();
 		}
 	}, [user, toast]);
+
+	const handleRoleChange = async (e) => {
+		e.preventDefault();
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/updateUserRole`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						user_id: user.userDetails.user_id,
+						role: role,
+					}),
+				}
+			);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to update role');
+			}
+			const updatedData = await response.json();
+			toast({
+				title: 'Success',
+				description: 'User role updated successfully.',
+				variant: 'success',
+			});
+			// Update local state so that userDetails reflects the new role.
+			setUser((prevUser) => ({
+				...prevUser,
+				userDetails: {
+					...prevUser.userDetails,
+					role: updatedData.role,
+				},
+			}));
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
+		}
+	};
 
 	// Handler for unlocking account
 	const handleUnlockAccount = async () => {
@@ -322,10 +362,23 @@ const UserDetail = () => {
 										<CheckBadgeIcon className="w-5 h-5 text-yellow-500" />
 										<p className="text-lg font-medium text-gray-800 dark:text-gray-300">
 											Role:{' '}
-											<span className="font-normal capitalize">
-												{user.userDetails.role}
-											</span>
+											<select
+												value={role}
+												onChange={(e) => setRole(e.target.value)}
+												className="p-2 border rounded dark:bg-gray-700">
+												{role === '' ? (
+													<option value="">Select a role</option>
+												) : null}
+												<option value="Admin">Admin</option>
+												<option value="Worker">Worker</option>
+												<option value="Maintainer">Maintainer</option>
+											</select>
 										</p>
+										<Button
+											onClick={handleRoleChange}
+											disabled={role === user.userDetails.role}>
+											Update Role
+										</Button>
 									</div>
 								</div>
 								<div className="mt-4 flex items-center justify-center space-x-2">
