@@ -40,7 +40,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								create-template
+								templates
 							</Link>
 						</li>
 						<li>
@@ -51,7 +51,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								handle-shifts
+								shifts
 							</Link>
 						</li>
 						<li>
@@ -62,7 +62,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Invite
+								invitation
 							</Link>
 						</li>
 						<li>
@@ -73,7 +73,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								CalendarLink
+								iCAL
 							</Link>
 						</li>
 						<li>
@@ -84,7 +84,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Manage Users
+								users
 							</Link>
 						</li>
 						<li>
@@ -95,7 +95,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Manage Status
+								status
 							</Link>
 						</li>
 						<li>
@@ -106,7 +106,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Schedule
+								schedule
 							</Link>
 						</li>
 						<li>
@@ -117,7 +117,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								create
+								create-schedule
 							</Link>
 						</li>
 						<li>
@@ -128,7 +128,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Server Info
+								s-info
 							</Link>
 						</li>
 						<li>
@@ -139,7 +139,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Server-Panel
+								d-panel
 							</Link>
 						</li>
 						<li>
@@ -150,7 +150,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Email-Status
+								email-status
 							</Link>
 						</li>
 					</>

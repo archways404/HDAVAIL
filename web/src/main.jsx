@@ -28,7 +28,8 @@ import CreateTemplate from './views/create-template_page/createTemplate';
 import StatusMsg from './views/status-messages_page/statusmsg';
 
 import ServerInfo from './old/serverinfo';
-import CreateSchedule from './old/createschedule';
+
+import CreateSchedule from './views/create-schedule_page/create_schedule';
 
 
 import './global.css';
