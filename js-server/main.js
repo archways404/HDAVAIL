@@ -88,14 +88,23 @@ app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+
 app.register(require('./routes/serverpanel'));
+
 app.register(require('./routes/shifts'));
-app.register(require('./routes/admin'));
+
+app.register(require('./routes/account_management'));
+
 app.register(require('./routes/template'));
+
 app.register(require('./routes/statistics'));
+
 app.register(require('./routes/schedule'));
+
 app.register(require('./routes/status'));
+
 app.register(require('./routes/webhook'));
+
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {

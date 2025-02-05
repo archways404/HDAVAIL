@@ -16,8 +16,11 @@ const UserDetail = () => {
 	const [email, setEmail] = useState('');
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [availableGroups, setAvailableGroups] = useState([]);
+	const [selectedGroup, setSelectedGroup] = useState('');
 	const { toast } = useToast();
 
+	// Fetch user details
 	useEffect(() => {
 		const fetchUser = async () => {
 			try {
@@ -30,8 +33,8 @@ const UserDetail = () => {
 				const data = await response.json();
 
 				if (data) {
-					setUser(data); // Set the entire response object as `user`
-					setEmail(data.userDetails.email); // Set email for reset password
+					setUser(data);
+					setEmail(data.userDetails.email);
 				} else {
 					setError('User not found');
 				}
@@ -45,6 +48,110 @@ const UserDetail = () => {
 		fetchUser();
 	}, [uuid]);
 
+	// Fetch available schedule groups for assignment (filtered)
+	useEffect(() => {
+		if (user) {
+			const fetchGroups = async () => {
+				try {
+					const response = await fetch(
+						`${import.meta.env.VITE_BASE_ADDR}/getAllScheduleGroups?user_id=${
+							user.userDetails.user_id
+						}`
+					);
+					if (!response.ok) {
+						throw new Error('Failed to fetch available groups');
+					}
+					const data = await response.json();
+					setAvailableGroups(data);
+				} catch (err) {
+					toast({
+						title: 'Error',
+						description: err.message,
+						variant: 'destructive',
+					});
+				}
+			};
+
+			fetchGroups();
+		}
+	}, [user, toast]);
+
+	// Handler for unlocking account
+	const handleUnlockAccount = async () => {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/unlockAccount`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ user_id: user.userDetails.user_id }),
+				}
+			);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to unlock account');
+			}
+			toast({
+				title: 'Success',
+				description: 'Account unlocked successfully.',
+				variant: 'success',
+			});
+			// Update local state to reflect the unlocked account
+			setUser((prevUser) => ({
+				...prevUser,
+				lockoutDetails: {
+					...prevUser.lockoutDetails,
+					locked: false,
+					failed_attempts: 0,
+					unlock_time: null,
+				},
+			}));
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// Handler for locking account
+	const handleLockAccount = async () => {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/lockAccount`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ user_id: user.userDetails.user_id }),
+				}
+			);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to lock account');
+			}
+			// Read the updated lockout details from the response
+			const lockoutData = await response.json();
+			toast({
+				title: 'Success',
+				description: 'Account locked successfully.',
+				variant: 'success',
+			});
+			// Update local state to reflect the new lockout details
+			setUser((prevUser) => ({
+				...prevUser,
+				lockoutDetails: lockoutData,
+			}));
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// Reset password handler (unchanged)
 	const handleResetPassword = async (e) => {
 		e.preventDefault();
 
@@ -66,9 +173,7 @@ const UserDetail = () => {
 						'Content-Type': 'application/json',
 					},
 					credentials: 'include',
-					body: JSON.stringify({
-						email,
-					}),
+					body: JSON.stringify({ email }),
 				}
 			);
 
@@ -80,9 +185,8 @@ const UserDetail = () => {
 				title: 'Success',
 				description: 'Password reset link has been sent to your email.',
 				variant: 'success',
-				duration: 3000, // Toast duration in milliseconds
+				duration: 3000,
 			});
-
 			setError('');
 		} catch (error) {
 			toast({
@@ -91,6 +195,94 @@ const UserDetail = () => {
 				variant: 'destructive',
 			});
 			setError(error.message);
+		}
+	};
+
+	// Handler for assigning a new schedule group
+	const handleAssignGroup = async () => {
+		if (!selectedGroup) {
+			toast({
+				title: 'Error',
+				description: 'Please select a schedule group to assign.',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		try {
+			const response = await fetch(
+				import.meta.env.VITE_BASE_ADDR + '/assignScheduleGroup',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						user_id: user.userDetails.user_id,
+						group_id: selectedGroup,
+					}),
+				}
+			);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to assign schedule group');
+			}
+			toast({
+				title: 'Success',
+				description: 'Schedule group assigned successfully.',
+				variant: 'success',
+			});
+			// Update the user's schedule groups (refetch or update locally)
+			setUser((prevUser) => ({
+				...prevUser,
+				scheduleGroups: [
+					...prevUser.scheduleGroups,
+					availableGroups.find((grp) => grp.group_id === selectedGroup),
+				],
+			}));
+			setSelectedGroup('');
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// Handler for removing a schedule group
+	const handleRemoveGroup = async (groupId) => {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/removeScheduleGroup?user_id=${
+					user.userDetails.user_id
+				}&group_id=${groupId}`,
+				{
+					method: 'DELETE',
+				}
+			);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to remove schedule group');
+			}
+			toast({
+				title: 'Success',
+				description: 'Schedule group removed successfully.',
+				variant: 'success',
+			});
+			// Remove the group from the local state
+			setUser((prevUser) => ({
+				...prevUser,
+				scheduleGroups: prevUser.scheduleGroups.filter(
+					(group) => group.group_id !== groupId
+				),
+			}));
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: error.message,
+				variant: 'destructive',
+			});
 		}
 	};
 
@@ -136,11 +328,20 @@ const UserDetail = () => {
 										</p>
 									</div>
 								</div>
-								<Button
-									onClick={handleResetPassword}
-									className="mt-4">
-									Reset Password
-								</Button>
+								<div className="mt-4 flex items-center justify-center space-x-2">
+									<Button onClick={handleResetPassword}>Reset Password</Button>
+									<Button
+										onClick={
+											user.lockoutDetails?.locked
+												? handleUnlockAccount
+												: handleLockAccount
+										}
+										variant="secondary">
+										{user.lockoutDetails?.locked
+											? 'Unlock Account'
+											: 'Lock Account'}
+									</Button>
+								</div>
 							</div>
 
 							{/* Lockout Details Section */}
@@ -186,17 +387,42 @@ const UserDetail = () => {
 										user.scheduleGroups.map((group) => (
 											<li
 												key={group.group_id}
-												className="flex justify-between">
+												className="flex items-center justify-between">
 												<span>{group.name}</span>
-												<span className="text-gray-500 dark:text-gray-400 text-sm">
-													{group.group_id}
-												</span>
+												<div className="flex items-center space-x-2">
+													<span className="text-gray-500 dark:text-gray-400 text-sm">
+														{group.group_id}
+													</span>
+													<Button
+														variant="destructive"
+														size="sm"
+														onClick={() => handleRemoveGroup(group.group_id)}>
+														Remove
+													</Button>
+												</div>
 											</li>
 										))
 									) : (
 										<p>No groups assigned</p>
 									)}
 								</ul>
+								{/* Assignment Panel */}
+								<div className="mt-4 flex items-center space-x-2">
+									<select
+										value={selectedGroup}
+										onChange={(e) => setSelectedGroup(e.target.value)}
+										className="p-2 border rounded dark:bg-gray-700">
+										<option value="">Select a schedule group to add</option>
+										{availableGroups.map((group) => (
+											<option
+												key={group.group_id}
+												value={group.group_id}>
+												{group.name}
+											</option>
+										))}
+									</select>
+									<Button onClick={handleAssignGroup}>Add Group</Button>
+								</div>
 							</div>
 						</div>
 					) : (

@@ -1,6 +1,3 @@
-const { getUsers } = require('../functions/search');
-const { getUserWithUUID } = require('../functions/search');
-
 async function routes(fastify, options) {
 	// Fastify endpoint to get accounts
 	fastify.get('/get-accounts', async (request, reply) => {
@@ -21,28 +18,6 @@ async function routes(fastify, options) {
 			client.release();
 		}
 	});
-
-	// Helper function to fetch users
-	async function getUsers(client, type) {
-		// Base query
-		let query = `
-        SELECT user_id, email, first_name, last_name, role 
-        FROM account
-    `;
-
-		// Add a WHERE clause if 'type' is provided
-		const values = [];
-		if (type) {
-			query += ` WHERE role = $1`;
-			values.push(type);
-		}
-
-		// Execute the query
-		const result = await client.query(query, values);
-
-		// Return the rows
-		return result.rows;
-	}
 
 	fastify.get('/get-user', async (request, reply) => {
 		const { uuid } = request.query;
@@ -74,6 +49,28 @@ async function routes(fastify, options) {
 			client.release();
 		}
 	});
+
+	// Helper function to fetch users
+	async function getUsers(client, type) {
+		// Base query
+		let query = `
+        SELECT user_id, email, first_name, last_name, role 
+        FROM account
+    `;
+
+		// Add a WHERE clause if 'type' is provided
+		const values = [];
+		if (type) {
+			query += ` WHERE role = $1`;
+			values.push(type);
+		}
+
+		// Execute the query
+		const result = await client.query(query, values);
+
+		// Return the rows
+		return result.rows;
+	}
 
 	// Helper function to get user details (excluding sensitive fields)
 	async function getUserDetails(client, uuid) {
