@@ -10,6 +10,9 @@ const path = require('path');
 
 const { getAssignedSlots } = require('./functions/createFiles');
 const { generateICSFiles } = require('./functions/createFiles');
+const { getAffectedUsers } = require('./functions/createFiles');
+const { getActiveShiftsForUser } = require('./functions/createFiles');
+const { generateICSFileForUser } = require('./functions/createFiles');
 
 const { updateHDCache } = require('./functions/cache');
 const { handleHDCache } = require('./functions/cache');
@@ -187,6 +190,33 @@ app.addHook('onReady', async () => {
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
+
+		await client.query('LISTEN active_shifts_channel');
+
+		client.on('notification', async (msg) => {
+			if (msg.channel === 'active_shifts_channel') {
+				const payload = JSON.parse(msg.payload);
+				console.log('Notification received:', payload);
+
+				// Get the list of affected user UUIDs from the schedule group.
+				const userUUIDs = await getAffectedUsers(
+					app,
+					payload.schedule_group_id
+				);
+				console.log('User UUIDs in group:', userUUIDs);
+
+				// For each user, get their active shifts and create an ICS file.
+				for (const userUUID of userUUIDs) {
+					const shifts = await getActiveShiftsForUser(app, userUUID);
+					console.log(`Active shifts for user ${userUUID}:`, shifts);
+					try {
+						await generateICSFileForUser(userUUID, shifts);
+					} catch (error) {
+						console.error(`Error generating ICS for user ${userUUID}:`, error);
+					}
+				}
+			}
+		});
 
 		/*
 		// Populate the cache on server boot

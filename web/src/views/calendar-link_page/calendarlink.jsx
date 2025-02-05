@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const CalendarLink = () => {
 	const { user } = useContext(AuthContext);
-	const userLink = import.meta.env.VITE_BASE_ADDR + '/ical/' + user.username;
+	const userLink = import.meta.env.VITE_BASE_ADDR + '/ical/' + user.uuid;
 
 	if (!user) {
 		return null;

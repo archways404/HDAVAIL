@@ -179,7 +179,7 @@ async function routes(fastify, options) {
 			}
 
 			// Validate that the role is one of the allowed options.
-			const allowedRoles = ['Admin', 'Worker', 'Maintainer'];
+			const allowedRoles = ['admin', 'worker', 'maintainer'];
 			if (!allowedRoles.includes(role)) {
 				return reply.status(400).send({ error: 'Invalid role provided' });
 			}

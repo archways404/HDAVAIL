@@ -369,9 +369,9 @@ const UserDetail = () => {
 												{role === '' ? (
 													<option value="">Select a role</option>
 												) : null}
-												<option value="Admin">Admin</option>
-												<option value="Worker">Worker</option>
-												<option value="Maintainer">Maintainer</option>
+												<option value="admin">Admin</option>
+												<option value="worker">Worker</option>
+												<option value="maintainer">Maintainer</option>
 											</select>
 										</p>
 										<Button
