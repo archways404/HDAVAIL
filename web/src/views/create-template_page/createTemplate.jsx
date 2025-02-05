@@ -23,18 +23,20 @@ function CreateTemplate() {
 	const [templateMeta, setTemplateMeta] = useState([]);
 	// The selected template that will be used as the base for the new template
 	const [selectedTemplate, setSelectedTemplate] = useState(null);
-
 	const [shiftTypes, setShiftTypes] = useState([]); // Fetched shift types
 	const [currentDay, setCurrentDay] = useState(1); // Start on Monday
-	const [entries, setEntries] = useState([]); // Global new entries list
+	// Global entries list (loaded from DB and/or new entries)
+	const [entries, setEntries] = useState([]);
 	const [showAddEntryForm, setShowAddEntryForm] = useState(false);
+	// newEntry holds the current form data; we use shift_type_id (not shift_id)
 	const [newEntry, setNewEntry] = useState({
-		shift_id: '',
+		shift_type_id: '',
 		title: '',
 		start_time: '',
 		end_time: '',
 	});
-	const [editingIndex, setEditingIndex] = useState(null); // To track if an entry is being edited
+	// editingIndex tracks which entry is being edited (if any)
+	const [editingIndex, setEditingIndex] = useState(null);
 	const [showSummary, setShowSummary] = useState(false); // Show summary screen
 
 	// Fetch shift types and template meta from the backend on mount
@@ -73,12 +75,60 @@ function CreateTemplate() {
 		}
 	};
 
-	// Handle navigation
+	// When a template is selected and shiftTypes are loaded, fetch its entries.
+	useEffect(() => {
+		const fetchTemplateData = async (template_id) => {
+			try {
+				const response = await fetch(
+					`${
+						import.meta.env.VITE_BASE_ADDR
+					}/getTemplateData?template_id=${template_id}`
+				);
+				if (!response.ok) {
+					throw new Error('Failed to fetch template data');
+				}
+				const data = await response.json();
+				return data; // Expecting an array of template entries
+			} catch (error) {
+				console.error('Error fetching template data:', error);
+				return [];
+			}
+		};
+
+		if (selectedTemplate && shiftTypes.length > 0) {
+			fetchTemplateData(selectedTemplate.template_id).then((data) => {
+				if (data && data.length > 0) {
+					// Map over the data to ensure each entry has:
+					// - shift_type_id (for the dropdown)
+					// - title derived from shiftTypes lookup
+					// - template_id from the selected template
+					// We intentionally do not store shift_id.
+					const updatedData = data.map((entry) => {
+						const shift = shiftTypes.find(
+							(s) => s.shift_type_id === entry.shift_type_id
+						);
+						return {
+							template_id: selectedTemplate.template_id,
+							shift_type_id: entry.shift_type_id,
+							title: shift ? shift.name_short : entry.title,
+							start_time: entry.start_time,
+							end_time: entry.end_time,
+							weekday: entry.weekday,
+						};
+					});
+					setEntries(updatedData);
+				} else {
+					setEntries([]);
+				}
+			});
+		}
+	}, [selectedTemplate, shiftTypes]);
+
+	// Navigation handlers
 	const handleNextDay = () => {
 		if (currentDay < 7) {
 			setCurrentDay((prev) => prev + 1);
 		} else {
-			// On Sunday, show the summary screen
 			setShowSummary(true);
 		}
 	};
@@ -87,32 +137,41 @@ function CreateTemplate() {
 		if (currentDay > 1) {
 			setCurrentDay((prev) => prev - 1);
 		} else {
-			// Hide summary and go back to Saturday
 			setShowSummary(false);
 		}
 	};
 
-	// Handle adding or editing an entry
+	// When adding or editing an entry:
 	const handleAddOrEditEntry = () => {
+		// Build the entry without any shift_id.
+		const entryToSave = {
+			template_id: selectedTemplate.template_id,
+			shift_type_id: newEntry.shift_type_id,
+			title: newEntry.title,
+			start_time: newEntry.start_time,
+			end_time: newEntry.end_time,
+			weekday: currentDay,
+		};
+
 		if (editingIndex !== null) {
-			// Edit existing entry
+			// Replace the existing entry at editingIndex
 			setEntries((prev) => {
 				const updatedEntries = [...prev];
-				updatedEntries[editingIndex] = { ...newEntry, weekday: currentDay };
+				updatedEntries[editingIndex] = entryToSave;
 				return updatedEntries;
 			});
 		} else {
-			// Add new entry
-			const entry = { ...newEntry, weekday: currentDay };
-			setEntries((prev) => [...prev, entry]);
+			// Add a new entry
+			setEntries((prev) => [...prev, entryToSave]);
 		}
 
-		setNewEntry({ shift_id: '', title: '', start_time: '', end_time: '' });
+		// Clear the form and reset editing state
+		setNewEntry({ shift_type_id: '', title: '', start_time: '', end_time: '' });
 		setShowAddEntryForm(false);
 		setEditingIndex(null);
 	};
 
-	// Handle deleting an entry
+	// Delete an entry
 	const handleDeleteEntry = (index) => {
 		setEntries((prev) => prev.filter((_, i) => i !== index));
 	};
@@ -122,12 +181,31 @@ function CreateTemplate() {
 		(entry) => entry.weekday === currentDay
 	);
 
-	// Handle sending data (only new entries)
+	// Submit the data to the backend
 	const handleSendData = async () => {
 		try {
+			// Build the payload without any shift_id in each entry
+			const payloadEntries = entries.map(
+				({
+					shift_type_id,
+					title,
+					start_time,
+					end_time,
+					weekday,
+					template_id,
+				}) => ({
+					shift_type_id,
+					title,
+					start_time,
+					end_time,
+					weekday,
+					template_id,
+				})
+			);
+
 			const payload = {
 				template_id: selectedTemplate.template_id,
-				entries,
+				entries: payloadEntries,
 			};
 
 			const response = await fetch(
@@ -146,10 +224,9 @@ function CreateTemplate() {
 			}
 
 			alert('Template submitted successfully!');
-			setEntries([]); // Clear new entries after successful submission
-			setCurrentDay(1); // Reset to Monday
-			setShowSummary(false); // Hide summary
-			// Optionally, reset the selected template if you want the user to re-select on next creation
+			setEntries([]); // Clear entries after submission
+			setCurrentDay(1); // Reset day
+			setShowSummary(false);
 			setSelectedTemplate(null);
 		} catch (error) {
 			console.error('Error submitting template:', error.message);
@@ -157,8 +234,9 @@ function CreateTemplate() {
 		}
 	};
 
-	// If no template has been selected and there are available template meta entries,
-	// display a selection view.
+	// --- Render different views ---
+
+	// Template selection view
 	if (!selectedTemplate && templateMeta.length > 0) {
 		return (
 			<Layout>
@@ -188,7 +266,7 @@ function CreateTemplate() {
 		);
 	}
 
-	// If there are no template meta entries, inform the user
+	// No template meta exists message
 	if (templateMeta.length === 0) {
 		return (
 			<Layout>
@@ -203,7 +281,7 @@ function CreateTemplate() {
 		);
 	}
 
-	// Summary view: displays the new entries that are about to be submitted
+	// Summary view: display all entries to be submitted.
 	if (showSummary) {
 		return (
 			<Layout>
@@ -233,7 +311,6 @@ function CreateTemplate() {
 								</p>
 							)}
 						</ul>
-						{/* Navigation buttons for summary */}
 						<div className="mt-6 text-center">
 							<button
 								className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
@@ -316,14 +393,14 @@ function CreateTemplate() {
 									<label className="block text-sm font-medium">Shift</label>
 									<select
 										className="w-full p-2 border rounded"
-										value={newEntry.shift_id}
+										value={newEntry.shift_type_id}
 										onChange={(e) => {
 											const selectedShift = shiftTypes.find(
 												(shift) => shift.shift_type_id === e.target.value
 											);
 											setNewEntry({
 												...newEntry,
-												shift_id: selectedShift.shift_type_id,
+												shift_type_id: selectedShift.shift_type_id,
 												title: selectedShift.name_short,
 											});
 										}}>
@@ -372,7 +449,7 @@ function CreateTemplate() {
 										className="bg-green-500 text-white px-4 py-2 rounded"
 										onClick={handleAddOrEditEntry}
 										disabled={
-											!newEntry.shift_id ||
+											!newEntry.shift_type_id ||
 											!newEntry.start_time ||
 											!newEntry.end_time
 										}>
@@ -404,7 +481,13 @@ function CreateTemplate() {
 										<button
 											className="bg-yellow-500 text-white px-2 py-1 rounded"
 											onClick={() => {
-												setNewEntry(entry);
+												// Set the editing form using the existing entry.
+												setNewEntry({
+													shift_type_id: entry.shift_type_id,
+													title: entry.title,
+													start_time: entry.start_time,
+													end_time: entry.end_time,
+												});
 												setEditingIndex(index);
 												setShowAddEntryForm(true);
 											}}>

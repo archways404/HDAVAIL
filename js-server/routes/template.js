@@ -8,7 +8,6 @@ const {
 } = require('../functions/handleTemplates');
 
 async function routes(fastify, options) {
-
 	fastify.get('/getTemplateMetaForUser', async (request, reply) => {
 		const client = await fastify.pg.connect();
 		const { user_id } = request.query;
@@ -38,18 +37,87 @@ async function routes(fastify, options) {
 		}
 	});
 
-	fastify.post('/submitTemplate', async (request, reply) => {
-		const template_id = request.body.template_id;
-		const template_entries = request.body.entries;
+	fastify.get('/getTemplateData', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { template_id } = request.query;
 
-		console.log('template_id:', template_id);
-		console.log('template_entries:', template_entries);
+		/*
+		if (!user_id) {
+			return reply.status(400).send({ error: 'user_id is required' });
+		}
+		*/
+
+		try {
+			const query = `
+      SELECT * FROM templates
+      WHERE template_id = $1;
+    `;
+			const result = await client.query(query, [template_id]);
+
+			return reply.status(200).send(result.rows);
+		} catch (error) {
+			console.error('Error retrieving template data:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to retrieve template data' });
+		} finally {
+			client.release();
+		}
 	});
 
+	fastify.post('/submitTemplate', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { template_id, entries } = request.body;
 
+		console.log('template_id:', template_id);
+		console.log('template_entries:', entries);
 
+		try {
+			// Start transaction
+			await client.query('BEGIN');
 
+			// Delete all current entries in the templates table for the given template_id
+			const deleteQuery = 'DELETE FROM templates WHERE template_id = $1';
+			await client.query(deleteQuery, [template_id]);
 
+			// Insert each entry from the request body.
+			// Notice that we no longer include the "shift_id" column.
+			const insertQuery = `
+      INSERT INTO templates (
+        template_id, 
+        shift_type_id, 
+        weekday, 
+        start_time, 
+        end_time
+      )
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+
+			for (const entry of entries) {
+				await client.query(insertQuery, [
+					template_id,
+					entry.shift_type_id,
+					entry.weekday,
+					entry.start_time,
+					entry.end_time,
+				]);
+			}
+
+			// Commit the transaction if all queries succeed
+			await client.query('COMMIT');
+
+			return reply.status(200).send({
+				message: 'Template updated successfully',
+			});
+		} catch (error) {
+			// Rollback the transaction if anything fails
+			await client.query('ROLLBACK');
+			console.error('Error updating template:', error);
+			return reply.status(500).send({ error: 'Failed to update template' });
+		} finally {
+			client.release();
+		}
+	});
 
 	fastify.get('/list-slot-types', async (request, reply) => {
 		const client = await fastify.pg.connect();
