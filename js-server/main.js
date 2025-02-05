@@ -8,11 +8,9 @@ const metrics = require('fastify-metrics');
 const fs = require('fs');
 const path = require('path');
 
-const { getAssignedSlots } = require('./functions/createFiles');
-const { generateICSFiles } = require('./functions/createFiles');
-const { getAffectedUsers } = require('./functions/createFiles');
-const { getActiveShiftsForUser } = require('./functions/createFiles');
-const { generateICSFileForUser } = require('./functions/createFiles');
+const { getAffectedUsers } = require('./functions/ical-creation');
+const { getActiveShiftsForUser } = require('./functions/ical-creation');
+const { generateICSFileForUser } = require('./functions/ical-creation');
 
 const { updateHDCache } = require('./functions/cache');
 const { handleHDCache } = require('./functions/cache');
@@ -198,7 +196,7 @@ app.addHook('onReady', async () => {
 				const payload = JSON.parse(msg.payload);
 				console.log('Notification received:', payload);
 
-				// Get the list of affected user UUIDs from the schedule group.
+				// Get the list of affected user UUIDs.
 				const userUUIDs = await getAffectedUsers(
 					app,
 					payload.schedule_group_id

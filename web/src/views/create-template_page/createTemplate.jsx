@@ -19,9 +19,14 @@ function CreateTemplate() {
 		return null;
 	}
 
+	// Meta data for the user's existing templates
+	const [templateMeta, setTemplateMeta] = useState([]);
+	// The selected template that will be used as the base for the new template
+	const [selectedTemplate, setSelectedTemplate] = useState(null);
+
 	const [shiftTypes, setShiftTypes] = useState([]); // Fetched shift types
 	const [currentDay, setCurrentDay] = useState(1); // Start on Monday
-	const [entries, setEntries] = useState([]); // Global entries list
+	const [entries, setEntries] = useState([]); // Global new entries list
 	const [showAddEntryForm, setShowAddEntryForm] = useState(false);
 	const [newEntry, setNewEntry] = useState({
 		shift_id: '',
@@ -32,25 +37,41 @@ function CreateTemplate() {
 	const [editingIndex, setEditingIndex] = useState(null); // To track if an entry is being edited
 	const [showSummary, setShowSummary] = useState(false); // Show summary screen
 
-	// Fetch shift types from the backend
+	// Fetch shift types and template meta from the backend on mount
 	useEffect(() => {
-		const fetchShiftTypes = async () => {
-			try {
-				const response = await fetch(
-					`${import.meta.env.VITE_BASE_ADDR}/getShiftTypes`
-				);
-				if (!response.ok) {
-					throw new Error('Failed to fetch shift types');
-				}
-				const data = await response.json();
-				setShiftTypes(data.shift_types);
-			} catch (error) {
-				console.error('Error fetching shift types:', error.message);
-			}
-		};
-
+		fetchTemplateMeta();
 		fetchShiftTypes();
 	}, []);
+
+	const fetchShiftTypes = async () => {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/getShiftTypes`
+			);
+			if (!response.ok) {
+				throw new Error('Failed to fetch shift types');
+			}
+			const data = await response.json();
+			setShiftTypes(data.shift_types);
+		} catch (error) {
+			console.error('Error fetching shift types:', error.message);
+		}
+	};
+
+	const fetchTemplateMeta = async () => {
+		if (!user?.uuid) return;
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/getTemplateMetaForUser?user_id=${
+					user.uuid
+				}`
+			);
+			const data = await response.json();
+			setTemplateMeta(data.template_meta);
+		} catch (error) {
+			console.error('Error fetching template meta:', error);
+		}
+	};
 
 	// Handle navigation
 	const handleNextDay = () => {
@@ -101,9 +122,14 @@ function CreateTemplate() {
 		(entry) => entry.weekday === currentDay
 	);
 
-	// Handle sending data
+	// Handle sending data (only new entries)
 	const handleSendData = async () => {
 		try {
+			const payload = {
+				template_id: selectedTemplate.template_id,
+				entries,
+			};
+
 			const response = await fetch(
 				`${import.meta.env.VITE_BASE_ADDR}/submitTemplate`,
 				{
@@ -111,7 +137,7 @@ function CreateTemplate() {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(entries),
+					body: JSON.stringify(payload),
 				}
 			);
 
@@ -120,27 +146,75 @@ function CreateTemplate() {
 			}
 
 			alert('Template submitted successfully!');
-			setEntries([]); // Clear entries after successful submission
+			setEntries([]); // Clear new entries after successful submission
 			setCurrentDay(1); // Reset to Monday
 			setShowSummary(false); // Hide summary
+			// Optionally, reset the selected template if you want the user to re-select on next creation
+			setSelectedTemplate(null);
 		} catch (error) {
 			console.error('Error submitting template:', error.message);
 			alert('Failed to submit template. Please try again.');
 		}
 	};
 
+	// If no template has been selected and there are available template meta entries,
+	// display a selection view.
+	if (!selectedTemplate && templateMeta.length > 0) {
+		return (
+			<Layout>
+				<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
+					<h1 className="text-2xl font-bold">Select a Template</h1>
+					<div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+						<p className="mb-4">
+							Please select one of your existing templates before creating a new
+							one.
+						</p>
+						<ul className="space-y-2">
+							{templateMeta.map((template) => (
+								<li
+									key={template.template_id}
+									className="p-4 bg-gray-100 dark:bg-gray-700 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+									onClick={() => setSelectedTemplate(template)}>
+									<p>
+										<strong>{template.name}</strong>
+									</p>
+									<p>{template.description}</p>
+								</li>
+							))}
+						</ul>
+					</div>
+				</div>
+			</Layout>
+		);
+	}
+
+	// If there are no template meta entries, inform the user
+	if (templateMeta.length === 0) {
+		return (
+			<Layout>
+				<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
+					<h1 className="text-2xl font-bold">No Template Found</h1>
+					<div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+						<p>You do not have any template meta data available.</p>
+						<p>Please create a template meta before creating a new template.</p>
+					</div>
+				</div>
+			</Layout>
+		);
+	}
+
+	// Summary view: displays the new entries that are about to be submitted
 	if (showSummary) {
 		return (
 			<Layout>
 				<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
-					<h1 className="text-2xl font-bold">Summary</h1>
+					<h1 className="text-2xl font-bold">Review Your Template Entries</h1>
 					<div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-						<h2 className="text-xl font-semibold">All Entries</h2>
-						<ul className="mt-4 space-y-2">
+						<ul className="space-y-2">
 							{entries.map((entry, index) => (
 								<li
 									key={index}
-									className="p-4 bg-gray-100 dark:bg-gray-700 rounded">
+									className="p-4 bg-gray-200 rounded">
 									<p>
 										<strong>Day:</strong>{' '}
 										{daysOfWeek.find((day) => day.id === entry.weekday).name}
@@ -153,11 +227,17 @@ function CreateTemplate() {
 									</p>
 								</li>
 							))}
+							{entries.length === 0 && (
+								<p className="text-gray-600 dark:text-gray-300">
+									No entries to submit.
+								</p>
+							)}
 						</ul>
+						{/* Navigation buttons for summary */}
 						<div className="mt-6 text-center">
 							<button
 								className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-								onClick={handlePreviousDay}>
+								onClick={() => setShowSummary(false)}>
 								Back
 							</button>
 							<button
@@ -172,11 +252,25 @@ function CreateTemplate() {
 		);
 	}
 
+	// Main create-template form
 	return (
 		<Layout>
 			<div className="flex flex-col justify-center items-center mb-8 mt-4 space-y-4">
 				<h1 className="text-2xl font-bold">Create Shift Template</h1>
 				<div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+					{/* Display the selected template info */}
+					<div className="mb-4 p-4 bg-blue-100 dark:bg-blue-900 rounded">
+						<p>
+							<strong>Using Template:</strong> {selectedTemplate.name}
+						</p>
+						<p>{selectedTemplate.description}</p>
+						<button
+							className="mt-2 text-sm text-blue-600 hover:underline"
+							onClick={() => setSelectedTemplate(null)}>
+							Change Template
+						</button>
+					</div>
+
 					{/* Current Day */}
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center">
 						{`Day: ${daysOfWeek[currentDay - 1].name}`}

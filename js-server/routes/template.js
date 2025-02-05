@@ -8,6 +8,49 @@ const {
 } = require('../functions/handleTemplates');
 
 async function routes(fastify, options) {
+
+	fastify.get('/getTemplateMetaForUser', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { user_id } = request.query;
+
+		if (!user_id) {
+			return reply.status(400).send({ error: 'user_id is required' });
+		}
+
+		try {
+			const query = `
+      SELECT * FROM template_meta
+      WHERE creator_id = $1;
+    `;
+			const result = await client.query(query, [user_id]);
+
+			return reply.status(200).send({
+				message: 'Template meta records retrieved successfully',
+				template_meta: result.rows,
+			});
+		} catch (error) {
+			console.error('Error retrieving template meta:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to retrieve template meta' });
+		} finally {
+			client.release();
+		}
+	});
+
+	fastify.post('/submitTemplate', async (request, reply) => {
+		const template_id = request.body.template_id;
+		const template_entries = request.body.entries;
+
+		console.log('template_id:', template_id);
+		console.log('template_entries:', template_entries);
+	});
+
+
+
+
+
+
 	fastify.get('/list-slot-types', async (request, reply) => {
 		const client = await fastify.pg.connect();
 		try {
