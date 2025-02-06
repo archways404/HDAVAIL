@@ -72,14 +72,16 @@ function CreationCalendar({
 		}
 	};
 
-	return (
+  return (
 		<div className="w-full h-[calc(100vh-200px)]">
 			<FullCalendar
-				plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+				// Force re-render when selectedYear or selectedMonth changes.
+				key={`${selectedYear}-${selectedMonth}`}
 				initialDate={`${selectedYear}-${String(selectedMonth).padStart(
 					2,
 					'0'
 				)}-01`}
+				plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
 				initialView="dayGridMonth"
 				editable={true}
 				selectable={true}
@@ -98,6 +100,7 @@ function CreationCalendar({
 						titleFormat: { year: 'numeric', month: 'long' },
 						dayHeaderFormat: { weekday: 'short' },
 						weekNumbers: true,
+						displayEventTime: false, // Remove time from title in month view.
 					},
 					timeGridWeek: {
 						firstDay: 1,

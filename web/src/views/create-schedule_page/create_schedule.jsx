@@ -95,8 +95,8 @@ const CreateSchedule = () => {
 										{selectedGroup.name}
 									</p>
 									<p className="text-lg text-gray-700 dark:text-gray-300">
-										<span className="font-semibold">Date:</span> {selectedMonth}
-										-{selectedYear}
+										<span className="font-semibold">Date:</span> 0
+										{selectedMonth} - {selectedYear}
 									</p>
 								</div>
 								<div className="flex flex-wrap gap-4">
