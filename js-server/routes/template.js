@@ -1,11 +1,6 @@
-const { list_slot_types } = require('../functions/handleTemplates');
-const { create_slot_type } = require('../functions/handleTemplates');
-const { delete_slot_type } = require('../functions/handleTemplates');
-const { get_template_entries } = require('../functions/handleTemplates');
-const { get_templates_by_user } = require('../functions/handleTemplates');
-const {
-	create_template_with_entries,
-} = require('../functions/handleTemplates');
+const Holidays = require('date-holidays');
+const hd = new Holidays('SE');
+const { v4: uuidv4 } = require('uuid');
 
 async function routes(fastify, options) {
 	fastify.get('/getTemplateMetaForUser', async (request, reply) => {
@@ -119,127 +114,145 @@ async function routes(fastify, options) {
 		}
 	});
 
-	fastify.get('/list-slot-types', async (request, reply) => {
+	fastify.post('/applyTemplate', async (request, reply) => {
 		const client = await fastify.pg.connect();
-		try {
-			const slot_types = await list_slot_types(client);
-			return reply.send(slot_types);
-		} catch (error) {
-			console.error('Error fetching slot_types:', error.message);
-			return reply.status(500).send({ error: 'Failed to fetch slot_types' });
-		}
-	});
+		const { user_id, template_id, group_id, year, month } = request.body;
 
-	fastify.post('/create-slot-type', async (request, reply) => {
-		const { short_name, long_name } = request.body;
-		const client = await fastify.pg.connect();
+		console.log('user_id:', user_id);
+		console.log('template_id:', template_id);
+		console.log('group_id:', group_id);
+		console.log('year:', year);
+		console.log('month:', month);
+
+		// Convert month to a two-digit string.
+		const formattedMonth = month.toString().padStart(2, '0');
+		console.log('formattedMonth:', formattedMonth);
+
 		try {
-			const result = await create_slot_type(client, short_name, long_name);
-			if (result) {
-				return reply
-					.code(201)
-					.send({ message: 'Slot type created successfully', slot_id: result });
-			} else {
-				return reply.code(400).send({ message: 'Slot type creation failed' });
-			}
+			const query = `
+  SELECT 
+    t.*,
+    st.name_long,
+    st.name_short,
+    sg.group_id,
+    sg.name AS group_name
+  FROM templates t
+  JOIN shift_types st ON t.shift_type_id = st.shift_type_id
+  JOIN schedule_groups sg ON sg.group_id = $2
+  WHERE t.template_id = $1;
+`;
+			const result = await client.query(query, [template_id, group_id]);
+
+			let template = result.rows;
+			console.log('template', template);
+
+			let test = generateEntries(template, year, month);
+			console.log('test', test);
+
+			return reply.status(200).send(test);
+
+			//return reply.status(200).send(result.rows);
 		} catch (error) {
-			console.error('Error creating slot type:', error.message);
-			return reply.code(500).send({ message: 'Internal server error' });
+			console.error('Error retrieving template data:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to retrieve template data' });
 		} finally {
 			client.release();
 		}
 	});
 
-	fastify.get('/delete-slot-type/:slot_id', async (request, reply) => {
-		const { slot_id } = request.params;
-		const client = await fastify.pg.connect();
-		try {
-			const isDeleted = await delete_slot_type(client, slot_id);
-			if (isDeleted) {
-				return reply
-					.code(200)
-					.send({ message: 'Slot type deleted successfully' });
-			} else {
-				return reply
-					.code(404)
-					.send({ message: 'Slot type not found or could not be deleted' });
-			}
-		} catch (error) {
-			console.error('Error deleting slot type:', error.message);
-			return reply.code(500).send({ message: 'Internal server error' });
-		} finally {
-			client.release();
-		}
-	});
+	// Check if a given date string (YYYY-MM-DD) is not a holiday and log removed dates
+	function checkDate(dateString) {
+		const holiday = hd.isHoliday(dateString); // Use the string directly with Holidays
 
-	fastify.get('/template-entries/:template_id', async (request, reply) => {
-		const { template_id } = request.params;
-		const client = await fastify.pg.connect();
-		try {
-			const entries = await get_template_entries(client, template_id);
-			if (entries.length > 0) {
-				return reply.code(200).send(entries);
-			} else {
-				return reply
-					.code(404)
-					.send({ message: 'No template entries found for the provided ID' });
-			}
-		} catch (error) {
-			console.error('Error fetching template entries:', error.message);
-			return reply.code(500).send({ message: 'Internal server error' });
-		} finally {
-			client.release();
+		if (!holiday) {
+			return true; // Not a holiday
 		}
-	});
 
-	fastify.get('/templates-by-user/:user_id', async (request, reply) => {
-		const { user_id } = request.params;
-		const client = await fastify.pg.connect();
-		try {
-			const templates = await get_templates_by_user(client, user_id);
-			if (templates.length > 0) {
-				return reply.code(200).send(templates);
-			} else {
-				return reply
-					.code(404)
-					.send({ message: 'No templates found for the provided user ID' });
-			}
-		} catch (error) {
-			console.error('Error fetching templates by user:', error.message);
-			return reply.code(500).send({ message: 'Internal server error' });
-		} finally {
-			client.release();
-		}
-	});
-
-	fastify.post('/create-template-with-entries', async (request, reply) => {
-		const { owner_id, template_name, private_status, entries } = request.body;
-		const client = await fastify.pg.connect();
-		try {
-			const result = await create_template_with_entries(
-				client,
-				owner_id,
-				template_name,
-				private_status,
-				entries
+		if (Array.isArray(holiday)) {
+			// Check if any holiday is public, bank, or school
+			const hasSpecialHoliday = holiday.some(
+				(h) => h.type === 'public' || h.type === 'bank' || h.type === 'school'
 			);
-			if (result) {
-				return reply.code(201).send({
-					message: 'Template with entries created successfully',
-					template_id: result.template_id,
-				});
-			} else {
-				return reply
-					.code(400)
-					.send({ message: 'Failed to create template with entries' });
+			if (hasSpecialHoliday) {
+				console.log(
+					`Removed date (holiday): ${dateString} - ${holiday
+						.map((h) => h.name)
+						.join(', ')}`
+				);
 			}
-		} catch (error) {
-			console.error('Error creating template with entries:', error.message);
-			return reply.code(500).send({ message: 'Internal server error' });
-		} finally {
-			client.release();
+			return !hasSpecialHoliday;
 		}
-	});
+
+		// Single holiday check
+		const isSpecialHoliday =
+			holiday.type === 'public' ||
+			holiday.type === 'bank' ||
+			holiday.type === 'school';
+
+		if (isSpecialHoliday) {
+			console.log(`Removed date (holiday): ${dateString} - ${holiday.name}`);
+		}
+
+		return !isSpecialHoliday;
+	}
+
+	// Generate FullCalendar event objects for the specified month using the formattedData structure.
+	function generateEntries(formattedData, year, month) {
+		// Fully flatten formattedData regardless of its nesting depth.
+		const flattenedData = formattedData.flat(Infinity);
+
+		const daysInMonth = new Date(year, month, 0).getDate(); // Total days in the given month
+		const events = [];
+
+		// Loop through each day in the month.
+		for (let day = 1; day <= daysInMonth; day++) {
+			// Build a date string in the format YYYY-MM-DD
+			const dateString = `${year}-${String(month).padStart(2, '0')}-${String(
+				day
+			).padStart(2, '0')}`;
+
+			const date = new Date(dateString);
+			const weekdayJS = date.getDay(); // 0 (Sunday) to 6 (Saturday)
+			// Convert JavaScript weekday (0 for Sunday) to our expected format (1 for Monday ... 7 for Sunday)
+			const weekday = weekdayJS === 0 ? 7 : weekdayJS;
+
+			// Only create events if the date is not a holiday.
+			if (checkDate(dateString)) {
+				flattenedData.forEach((item) => {
+					// If the weekday in the data matches the current day of the week...
+					if (item.weekday === weekday) {
+						// Build start and end ISO8601 strings by combining dateString with the time parts.
+						const startDateTime = `${dateString}T${item.start_time}`;
+						const endDateTime = `${dateString}T${item.end_time}`;
+
+						// Create a unique UUID for this event.
+						const uniqueEventId = uuidv4();
+
+						events.push({
+							id: uniqueEventId, // New unique identifier for the event
+							title: item.name_short, // Short name as the title
+							start: startDateTime,
+							end: endDateTime,
+							extendedProps: {
+								description: `${item.name_long} from ${item.start_time} to ${item.end_time}`,
+								template_id: item.template_id,
+								shift_type_id: item.shift_type_id,
+								group_id: item.group_id,
+								group_name: item.group_name,
+								weekday: item.weekday,
+								start_time: item.start_time,
+								end_time: item.end_time,
+							},
+						});
+					}
+				});
+			}
+		}
+
+		return events;
+	}
 }
 
 module.exports = routes;
