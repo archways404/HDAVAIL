@@ -14,15 +14,13 @@ const CreateSchedule = () => {
 	// null = initial method selection,
 	// 'manual' = manual entry,
 	// 'template' = template selection, etc.
-
-	/*
 	const [renderMode, setRenderMode] = useState(null);
 	const [selectedTemplate, setSelectedTemplate] = useState(null);
 	const [selectedGroup, setSelectedGroup] = useState(null);
 	const [selectedYear, setSelectedYear] = useState(null);
 	const [selectedMonth, setSelectedMonth] = useState(null);
-	*/
 
+	/*
 	const [renderMode, setRenderMode] = useState('final');
 	const [selectedTemplate, setSelectedTemplate] = useState({
 		id: '30272fdd-e972-4d0f-8480-26490030b0ad',
@@ -34,6 +32,7 @@ const CreateSchedule = () => {
 	});
 	const [selectedYear, setSelectedYear] = useState('2025');
 	const [selectedMonth, setSelectedMonth] = useState(3);
+	*/
 
 	if (!user) return null;
 
