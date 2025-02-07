@@ -27,6 +27,8 @@ const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
 
+let activeConnections = new Set();
+
 const key = fs.readFileSync('../certificates/server-key.pem');
 const cert = fs.readFileSync('../certificates/server-cert.pem');
 
@@ -248,3 +250,58 @@ app.addHook('onReady', async () => {
 		throw new Error('PostgreSQL connection is not established');
 	}
 });
+
+// Hook into Fastify lifecycle to track connections
+app.addHook('onRequest', async (request, reply) => {
+	activeConnections.add(request.id);
+});
+
+app.addHook('onResponse', async (request, reply) => {
+	activeConnections.delete(request.id);
+});
+
+/// Function to wait for active connections before shutting down
+async function waitForConnectionsToClose(timeout = 5000) {
+	return new Promise((resolve) => {
+		const checkConnections = () => {
+			if (activeConnections.size === 0) {
+				console.log(
+					'[Fastify] All active connections closed. Proceeding with shutdown.'
+				);
+				resolve();
+			} else {
+				console.log(
+					`[Fastify] Waiting for ${activeConnections.size} active requests to complete...`
+				);
+				setTimeout(checkConnections, 500);
+			}
+		};
+		checkConnections();
+	});
+}
+
+async function gracefulShutdown(signal) {
+	console.log(`[Fastify] Received ${signal}. Cleaning up...`);
+
+	// Stop accepting new connections
+	await app.close();
+
+	// Wait for active requests to finish
+	await waitForConnectionsToClose();
+
+	// Close the database connection
+	try {
+		const client = await app.pg.connect();
+		client.release();
+		console.log('[Fastify] Database connection closed.');
+	} catch (err) {
+		console.error('[Fastify] Error closing database connection:', err);
+	}
+
+	console.log('[Fastify] Cleanup complete. Exiting now.');
+	process.exit(0);
+}
+
+// Listen for termination signals
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
