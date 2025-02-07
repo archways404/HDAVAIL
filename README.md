@@ -1,10 +1,6 @@
-# Project Name (TBD)
+# Project R3DSHIFT
 
 ## Summary
-Need to edit this part a bit...
-...
-...
-...
 ...
 
 ## Overview
@@ -29,8 +25,9 @@ The system also includes robust features like automated database backups, trade 
 
 We use [Semantic Versioning](https://semver.org/) for this project. For the available versions, see the [tags on this repository](https://github.com/your-repo/tags).
 
-- **Initial Release**: 1.0.0 - Planned December 2024
-- **Next Version**: 2.0.0 - Planned January 2025
+- **Pre Release (Beta)**: 0.5.0 - Planned February 2025
+- **Initial Release**: 1.0.0 - Planned March 2025
+- **Next Version**: 2.0.0 - Planned July 2025
 
 ## Roadmap
 
@@ -94,7 +91,12 @@ pnpm run dev
 Contributions are welcome. To contribute, please send an email to the repository owner at archways@gmx.us to be invited as a contributor.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
+This project is dual-licensed:
+
+- **Open Source:** For open source projects, this software is licensed under the Mozilla Public License 2.0. See the [LICENSE](LICENSE) file for the full text of the MPL 2.0.
+
+- **Commercial:** For commercial use (e.g., if you wish to integrate this software into proprietary projects without releasing your modifications), a separate commercial license is available. Please contact [archways@gmx.us](mailto:archways@gmx.us) for details.
 
 ## Credits
 
