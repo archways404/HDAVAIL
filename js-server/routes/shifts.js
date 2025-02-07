@@ -316,7 +316,7 @@ async function routes(fastify, options) {
 
 		// Transform each event
 		const transformedData = myData.map((item) => {
-			// Destructure the fields you need from extendedProps
+			// Destructure the fields from extendedProps
 			const { shift_type_id, description, group_id } = item.extendedProps || {};
 			// Split the start and end strings at the 'T'
 			const [date, start_time] = item.start.split('T');
@@ -324,7 +324,6 @@ async function routes(fastify, options) {
 			return {
 				shift_type_id,
 				description,
-				// Rename group_id to schedule_group_id to match your table definition
 				schedule_group_id: group_id,
 				date,
 				start_time,
