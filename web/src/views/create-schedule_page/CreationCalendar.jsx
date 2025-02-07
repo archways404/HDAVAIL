@@ -1,3 +1,4 @@
+// CreationCalendar.jsx
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -5,9 +6,10 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import React, { useContext, useState, useEffect } from 'react';
 import enGbLocale from '@fullcalendar/core/locales/en-gb';
-import svLocale from '@fullcalendar/core/locales/sv';
 import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import EventDialog from './EventDialog';
+import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to get current time in HH:MM:SS format.
 function getCurrentTime() {
@@ -25,6 +27,8 @@ function CreationCalendar({
 	const { toast } = useToast();
 
 	const [events, setEvents] = useState([]);
+	const [modalOpen, setModalOpen] = useState(false);
+	const [currentEvent, setCurrentEvent] = useState(null);
 
 	useEffect(() => {
 		fetchEvents();
@@ -46,7 +50,6 @@ function CreationCalendar({
 			!selectedMonth
 		)
 			return;
-
 		try {
 			const url = `${import.meta.env.VITE_BASE_ADDR}/applyTemplate`;
 			const response = await fetch(url, {
@@ -61,8 +64,8 @@ function CreationCalendar({
 				}),
 			});
 			const data = await response.json();
-			setEvents(data); // <-- This updates the state
-			console.log('events', events);
+			setEvents(data);
+			console.log('events', data);
 		} catch (error) {
 			console.error('Error fetching events:', error);
 			toast({
@@ -72,10 +75,62 @@ function CreationCalendar({
 		}
 	};
 
-  return (
+	// When an event is clicked, open the modal with that event’s data.
+	const handleEventClick = (info) => {
+		const event = info.event;
+		const eventData = {
+			id: event.id,
+			title: event.title,
+			start: event.startStr,
+			end: event.endStr,
+			extendedProps: event.extendedProps,
+		};
+		setCurrentEvent(eventData);
+		setModalOpen(true);
+	};
+
+	// When a date/time selection is made (to create a new event).
+	const handleDateSelect = (selectInfo) => {
+		const dateStr = selectInfo.startStr; // e.g. "2025-03-03"
+		const newEvent = {
+			id: null, // Will be generated on save.
+			title: '',
+			start: dateStr + 'T09:00:00',
+			end: dateStr + 'T17:00:00',
+			extendedProps: { description: '' },
+		};
+		setCurrentEvent(newEvent);
+		setModalOpen(true);
+	};
+
+	// Save an event (update existing or create new).
+	const handleSaveEvent = (updatedEvent) => {
+		setEvents((prevEvents) => {
+			if (updatedEvent.id) {
+				// Update existing event.
+				return prevEvents.map((ev) =>
+					ev.id === updatedEvent.id ? updatedEvent : ev
+				);
+			} else {
+				// Create new event with a new UUID.
+				updatedEvent.id = uuidv4();
+				return [...prevEvents, updatedEvent];
+			}
+		});
+		// Optionally: Trigger an API call to persist changes.
+	};
+
+	// Delete an event.
+	const handleDeleteEvent = (eventToDelete) => {
+		setEvents((prevEvents) =>
+			prevEvents.filter((ev) => ev.id !== eventToDelete.id)
+		);
+		// Optionally: Trigger an API call to remove the event in your backend.
+	};
+
+	return (
 		<div className="w-full h-[calc(100vh-200px)]">
 			<FullCalendar
-				// Force re-render when selectedYear or selectedMonth changes.
 				key={`${selectedYear}-${selectedMonth}`}
 				initialDate={`${selectedYear}-${String(selectedMonth).padStart(
 					2,
@@ -100,7 +155,7 @@ function CreationCalendar({
 						titleFormat: { year: 'numeric', month: 'long' },
 						dayHeaderFormat: { weekday: 'short' },
 						weekNumbers: true,
-						displayEventTime: false, // Remove time from title in month view.
+						displayEventTime: false,
 					},
 					timeGridWeek: {
 						firstDay: 1,
@@ -128,6 +183,17 @@ function CreationCalendar({
 						scrollTime: getCurrentTime(),
 					},
 				}}
+				eventClick={handleEventClick}
+				select={handleDateSelect}
+			/>
+
+			{/* Modal for editing/creating events */}
+			<EventDialog
+				isOpen={modalOpen}
+				onClose={() => setModalOpen(false)}
+				eventData={currentEvent}
+				onSave={handleSaveEvent}
+				onDelete={handleDeleteEvent}
 			/>
 		</div>
 	);
