@@ -10,6 +10,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import EventDialog from './EventDialog';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from '@/components/ui/button';
 
 // Helper function to get current time in HH:MM:SS format.
 function getCurrentTime() {
@@ -29,6 +30,18 @@ function CreationCalendar({
 	const [events, setEvents] = useState([]);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [currentEvent, setCurrentEvent] = useState(null);
+	const [shiftTypes, setShiftTypes] = useState([]); // New state for shift types
+
+	// Fetch shift types once on mount.
+	useEffect(() => {
+		fetch(`${import.meta.env.VITE_BASE_ADDR}/getShiftTypes`)
+			.then((res) => res.json())
+			.then((data) => {
+				// Assuming the API returns { shift_types: [ ... ] }
+				setShiftTypes(data.shift_types);
+			})
+			.catch((err) => console.error('Error fetching shift types:', err));
+	}, []);
 
 	useEffect(() => {
 		fetchEvents();
@@ -117,7 +130,6 @@ function CreationCalendar({
 				return [...prevEvents, updatedEvent];
 			}
 		});
-		// Optionally: Trigger an API call to persist changes.
 	};
 
 	// Delete an event.
@@ -125,7 +137,32 @@ function CreationCalendar({
 		setEvents((prevEvents) =>
 			prevEvents.filter((ev) => ev.id !== eventToDelete.id)
 		);
-		// Optionally: Trigger an API call to remove the event in your backend.
+	};
+
+	// Handler to submit events to the backend.
+	const handleSubmitAllEvents = async () => {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_ADDR}/insertActiveShifts`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(events),
+				}
+			);
+			const result = await response.json();
+			console.log('Submission result:', result);
+			toast({
+				description: 'Events submitted successfully!',
+				variant: 'default',
+			});
+		} catch (error) {
+			console.error('Error submitting events:', error);
+			toast({
+				description: 'Error submitting events',
+				variant: 'destructive',
+			});
+		}
 	};
 
 	return (
@@ -187,6 +224,15 @@ function CreationCalendar({
 				select={handleDateSelect}
 			/>
 
+			{/* Button to submit all events */}
+			<div className="mt-4 flex justify-center">
+				<Button
+					onClick={handleSubmitAllEvents}
+					className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+					Submit Events
+				</Button>
+			</div>
+
 			{/* Modal for editing/creating events */}
 			<EventDialog
 				isOpen={modalOpen}
@@ -194,6 +240,9 @@ function CreationCalendar({
 				eventData={currentEvent}
 				onSave={handleSaveEvent}
 				onDelete={handleDeleteEvent}
+				shiftTypes={shiftTypes}
+				defaultGroupId={selectedGroup.id} // Pass default group id
+				defaultGroupName={selectedGroup.name} // Pass default group name
 			/>
 		</div>
 	);

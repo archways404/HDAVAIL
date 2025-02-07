@@ -311,6 +311,86 @@ async function routes(fastify, options) {
 		}
 	});
 
+	fastify.post('/insertActiveShifts', async (request, reply) => {
+		const myData = request.body;
+
+		// Transform each event
+		const transformedData = myData.map((item) => {
+			// Destructure the fields you need from extendedProps
+			const { shift_type_id, description, group_id } = item.extendedProps || {};
+			// Split the start and end strings at the 'T'
+			const [date, start_time] = item.start.split('T');
+			const [, end_time] = item.end.split('T');
+			return {
+				shift_type_id,
+				description,
+				// Rename group_id to schedule_group_id to match your table definition
+				schedule_group_id: group_id,
+				date,
+				start_time,
+				end_time,
+			};
+		});
+
+		console.log('Transformed Data:', transformedData);
+
+		// Bulk insert using a single query in a transaction.
+		const client = await fastify.pg.connect();
+		try {
+			// Begin transaction
+			await client.query('BEGIN');
+
+			// Define the columns to insert.
+			const columns = [
+				'shift_type_id',
+				'start_time',
+				'end_time',
+				'date',
+				'description',
+				'schedule_group_id',
+			];
+			// Build the parameterized values array and placeholder strings.
+			const values = [];
+			const valuePlaceholders = transformedData.map((shift, index) => {
+				const startIndex = index * columns.length + 1;
+				values.push(
+					shift.shift_type_id,
+					shift.start_time,
+					shift.end_time,
+					shift.date,
+					shift.description,
+					shift.schedule_group_id
+				);
+				const placeholders = columns.map((_, i) => `$${startIndex + i}`);
+				return `(${placeholders.join(',')})`;
+			});
+
+			const insertQuery = `
+      INSERT INTO active_shifts (${columns.join(',')})
+      VALUES ${valuePlaceholders.join(',')}
+      RETURNING *;
+    `;
+			const result = await client.query(insertQuery, values);
+
+			// If everything is successful, commit the transaction.
+			await client.query('COMMIT');
+
+			return reply.status(201).send({
+				message: 'Active shifts created successfully',
+				shifts: result.rows,
+			});
+		} catch (error) {
+			// If there is an error, rollback the transaction.
+			await client.query('ROLLBACK');
+			console.error('Error inserting active shifts:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to insert active shifts' });
+		} finally {
+			client.release();
+		}
+	});
+
 	fastify.get('/getActiveShifts', async (request, reply) => {
 		const client = await fastify.pg.connect();
 		const { shift_type_id, date, assigned_to } = request.query;

@@ -18,8 +18,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
-	// Local state for the form fields.
+const EventDialog = ({
+	isOpen,
+	onClose,
+	eventData,
+	onSave,
+	onDelete,
+	shiftTypes,
+	defaultGroupId, // New prop for default group id
+	defaultGroupName, // New prop for default group name
+}) => {
+	// Local state for form fields.
 	const [title, setTitle] = useState('');
 	const [start, setStart] = useState('');
 	const [end, setEnd] = useState('');
@@ -34,21 +43,7 @@ const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
 	const [startTime, setStartTime] = useState('');
 	const [endTime, setEndTime] = useState('');
 
-	// State for available shift types.
-	const [shiftTypes, setShiftTypes] = useState([]);
-
-	// Fetch shift types on mount.
-	useEffect(() => {
-		fetch(`${import.meta.env.VITE_BASE_ADDR}/getShiftTypes`)
-			.then((res) => res.json())
-			.then((data) => {
-				// Assuming the API returns { shift_types: [ ... ] }
-				setShiftTypes(data.shift_types);
-			})
-			.catch((err) => console.error('Error fetching shift types:', err));
-	}, []);
-
-	// Helper: Format date/time for input type="datetime-local" (includes hours and minutes)
+	// Helper: Format date/time for input type="datetime-local"
 	const formatDatetimeLocal = (value) => {
 		if (!value) return '';
 		const dt = new Date(value);
@@ -74,28 +69,30 @@ const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
 	useEffect(() => {
 		if (eventData) {
 			setTitle(eventData.title || '');
-			// For an existing event, format the start/end as datetime-local.
-			// For a new event (no id), set the date but default the time to 00:00:00.
 			if (eventData.id && eventData.start && eventData.end) {
 				setStart(formatDatetimeLocal(eventData.start));
 				setEnd(formatDatetimeLocal(eventData.end));
 			} else {
 				const dateOnly = extractDate(eventData.start);
+				// For a new event, prefill the date but set time to midnight.
 				setStart(`${dateOnly}T00:00:00`);
 				setEnd(`${dateOnly}T00:00:00`);
 			}
 			setDescription(eventData.extendedProps?.description || '');
 			setTemplateId(eventData.extendedProps?.template_id || '');
 			setShiftTypeId(eventData.extendedProps?.shift_type_id || '');
-			setGroupId(eventData.extendedProps?.group_id || '');
-			setGroupName(eventData.extendedProps?.group_name || '');
+			// Use the eventData value if present; otherwise, fall back to the defaults.
+			setGroupId(eventData.extendedProps?.group_id || defaultGroupId || '');
+			setGroupName(
+				eventData.extendedProps?.group_name || defaultGroupName || ''
+			);
 			setWeekday(eventData.extendedProps?.weekday || '');
 			setStartTime(eventData.extendedProps?.start_time || '');
 			setEndTime(eventData.extendedProps?.end_time || '');
 		}
-	}, [eventData]);
+	}, [eventData, defaultGroupId, defaultGroupName]);
 
-	// When shiftTypeId changes, update the title based on the available shift types.
+	// When shiftTypeId changes, update the title based on the passed-in shiftTypes.
 	useEffect(() => {
 		const found = shiftTypes.find((st) => st.shift_type_id === shiftTypeId);
 		if (found) {
@@ -106,10 +103,9 @@ const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
 	}, [shiftTypeId, shiftTypes]);
 
 	const handleSave = () => {
-		// Build the updated event object.
 		const updatedEvent = {
 			...eventData,
-			title, // Title is derived from the selected shift type.
+			title,
 			start,
 			end,
 			extendedProps: {
@@ -144,15 +140,28 @@ const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-4">
-					{/* Title is read-only (automatically set based on shift type) */}
+					{/* Shift Type Dropdown */}
 					<div>
-						<label className="block text-sm font-medium mb-1">Title</label>
-						<Input
-							value={title}
-							readOnly
-						/>
+						<label className="block text-xs font-medium mb-1">Shift Type</label>
+						<Select
+							defaultValue={shiftTypeId}
+							value={shiftTypeId}
+							onValueChange={setShiftTypeId}>
+							<SelectTrigger className="w-full border rounded p-2">
+								<SelectValue placeholder="Select shift type" />
+							</SelectTrigger>
+							<SelectContent>
+								{shiftTypes.map((st) => (
+									<SelectItem
+										key={st.shift_type_id}
+										value={st.shift_type_id}>
+										{st.name_short}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
-					{/* Date & Time fields */}
+					{/* Date & Time Fields */}
 					<div>
 						<label className="block text-sm font-medium mb-1">Start</label>
 						<Input
@@ -177,83 +186,6 @@ const EventDialog = ({ isOpen, onClose, eventData, onSave, onDelete }) => {
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 						/>
-					</div>
-					{/* Additional Fields */}
-					<div className="border-t pt-2">
-						<p className="text-sm font-semibold mb-1">Additional Details</p>
-						<div>
-							<label className="block text-xs font-medium mb-1">
-								Template ID
-							</label>
-							<Input
-								value={templateId}
-								onChange={(e) => setTemplateId(e.target.value)}
-							/>
-						</div>
-						{/* Shift Type Dropdown */}
-						<div>
-							<label className="block text-xs font-medium mb-1">
-								Shift Type
-							</label>
-							<Select
-								defaultValue={shiftTypeId}
-								value={shiftTypeId}
-								onValueChange={setShiftTypeId}>
-								<SelectTrigger className="w-full border rounded p-2">
-									<SelectValue placeholder="Select shift type" />
-								</SelectTrigger>
-								<SelectContent>
-									{shiftTypes.map((st) => (
-										<SelectItem
-											key={st.shift_type_id}
-											value={st.shift_type_id}>
-											{st.name_short}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1">Group ID</label>
-							<Input
-								value={groupId}
-								onChange={(e) => setGroupId(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1">
-								Group Name
-							</label>
-							<Input
-								value={groupName}
-								onChange={(e) => setGroupName(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1">Weekday</label>
-							<Input
-								value={weekday}
-								onChange={(e) => setWeekday(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1">
-								Start Time
-							</label>
-							<Input
-								type="time"
-								value={startTime}
-								onChange={(e) => setStartTime(e.target.value)}
-							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1">End Time</label>
-							<Input
-								type="time"
-								value={endTime}
-								onChange={(e) => setEndTime(e.target.value)}
-							/>
-						</div>
 					</div>
 				</div>
 				<DialogFooter className="mt-4 flex justify-end space-x-2">
