@@ -56,6 +56,28 @@ const Navbar = () => {
 						</li>
 						<li>
 							<Link
+								to="/apply-unassigned"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								unassigned
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/assign-shifts"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								assign
+							</Link>
+						</li>
+						<li>
+							<Link
 								to="/invite"
 								className={`${
 									theme === 'dark'

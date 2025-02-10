@@ -378,21 +378,32 @@ async function routes(fastify, options) {
 
 	fastify.get('/getUnassignedShifts', async (request, reply) => {
 		const client = await fastify.pg.connect();
-		const { group_id, shift_type_id, date } = request.query;
+		const { group_id, shift_type_id, date, user_id } = request.query;
 
-		// group_id is required – return an error if it's missing.
+		// group_id and user_id are required.
 		if (!group_id) {
+			client.release();
 			return reply.status(400).send({ error: 'group_id is required' });
+		}
+		if (!user_id) {
+			client.release();
+			return reply.status(400).send({ error: 'user_id is required' });
 		}
 
 		try {
-			// Base query with the required group filter.
+			// Base query:
+			// - Select shifts where no one is assigned.
+			// - The shift belongs to the specified group.
+			// - And the shift is not already marked as available for the user.
 			let query = `
       SELECT * FROM active_shifts
       WHERE assigned_to IS NULL
         AND schedule_group_id = $1
+        AND shift_id NOT IN (
+          SELECT shift_id FROM available_for_shift WHERE user_id = $2
+        )
     `;
-			const queryParams = [group_id];
+			const queryParams = [group_id, user_id];
 
 			// Optionally filter by shift_type_id.
 			if (shift_type_id) {
@@ -547,6 +558,71 @@ async function routes(fastify, options) {
 		} catch (error) {
 			console.error('Error retrieving schedule:', error);
 			return reply.status(500).send({ error: 'Failed to retrieve schedule' });
+		} finally {
+			client.release();
+		}
+	});
+
+	fastify.post('/assignShifts', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { assignments } = request.body;
+
+		// Validate that assignments is a non-empty array.
+		if (!Array.isArray(assignments) || assignments.length === 0) {
+			client.release();
+			return reply
+				.status(400)
+				.send({ error: 'assignments must be a non-empty array' });
+		}
+
+		try {
+			// Begin a transaction.
+			await client.query('BEGIN');
+
+			// Build the bulk update query using a CASE expression.
+			// We cast both shift_id and user_id to uuid.
+			let query = 'UPDATE active_shifts SET assigned_to = CASE shift_id ';
+			const queryParams = [];
+			let paramIndex = 1;
+			const shiftIds = [];
+
+			// Build the CASE expression.
+			for (const assignment of assignments) {
+				// Each assignment object must contain shift_id and user_id.
+				// Cast both to uuid.
+				query += `WHEN $${paramIndex}::uuid THEN $${paramIndex + 1}::uuid `;
+				queryParams.push(assignment.shift_id, assignment.user_id);
+				shiftIds.push(assignment.shift_id);
+				paramIndex += 2;
+			}
+			query += 'END ';
+
+			// Add a WHERE clause so that only the provided shift_ids are updated.
+			query += 'WHERE shift_id IN (';
+			// We add a new set of placeholders for the shift IDs and cast them to uuid.
+			for (let i = 0; i < shiftIds.length; i++) {
+				query += `$${paramIndex + i}::uuid`;
+				if (i < shiftIds.length - 1) {
+					query += ', ';
+				}
+				queryParams.push(shiftIds[i]);
+			}
+			query += ')';
+
+			// Execute the bulk update query.
+			await client.query(query, queryParams);
+
+			// Commit the transaction.
+			await client.query('COMMIT');
+
+			return reply
+				.status(200)
+				.send({ message: 'Shifts assigned successfully' });
+		} catch (error) {
+			// Rollback the transaction if any error occurs.
+			await client.query('ROLLBACK');
+			console.error('Error assigning shifts:', error);
+			return reply.status(500).send({ error: 'Failed to assign shifts' });
 		} finally {
 			client.release();
 		}

@@ -31,6 +31,9 @@ import ServerInfo from './old/serverinfo';
 
 import CreateSchedule from './views/create-schedule_page/create_schedule';
 
+import ApplyUnassigned from './views/apply-unassigned_page/apply_unassigned';
+
+import AssignShifts from './views/assign_shifts_page/assign_shifts';
 
 import './global.css';
 
@@ -116,6 +119,22 @@ createRoot(document.getElementById('root')).render(
 						element={
 							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
 								<Schedule />
+							</AuthWrapper>
+						}
+					/>
+					<Route
+						path="/apply-unassigned"
+						element={
+							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
+								<ApplyUnassigned />
+							</AuthWrapper>
+						}
+					/>
+					<Route
+						path="/assign-shifts"
+						element={
+							<AuthWrapper allowedUserRoles={['admin']}>
+								<AssignShifts />
 							</AuthWrapper>
 						}
 					/>

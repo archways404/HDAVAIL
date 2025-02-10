@@ -302,6 +302,8 @@ async function gracefulShutdown(signal) {
 	process.exit(0);
 }
 
+/*
 // Listen for termination signals
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+*/
