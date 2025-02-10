@@ -255,62 +255,6 @@ async function routes(fastify, options) {
 		}
 	});
 
-	fastify.post('/createActiveShifts', async (request, reply) => {
-		const { shifts } = request.body;
-
-		if (!Array.isArray(shifts) || shifts.length === 0) {
-			return reply.status(400).send({
-				error: 'An array of shifts is required',
-			});
-		}
-
-		const client = await fastify.pg.connect();
-
-		try {
-			const insertedShifts = [];
-
-			for (const shift of shifts) {
-				const { shift_type_id, assigned_to, start_time, end_time, date } =
-					shift;
-
-				if (!shift_type_id || !start_time || !end_time || !date) {
-					return reply.status(400).send({
-						error:
-							'shift_type_id, start_time, end_time, and date are required for each shift',
-					});
-				}
-
-				const insertQuery = `
-        INSERT INTO active_shifts (shift_type_id, assigned_to, start_time, end_time, date)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;
-      `;
-
-				const result = await client.query(insertQuery, [
-					shift_type_id,
-					assigned_to || null, // Optional: can be null if unassigned
-					start_time,
-					end_time,
-					date,
-				]);
-
-				insertedShifts.push(result.rows[0]);
-			}
-
-			return reply.status(201).send({
-				message: 'Active shifts created successfully',
-				shifts: insertedShifts,
-			});
-		} catch (error) {
-			console.error('Error creating active shifts:', error);
-			return reply
-				.status(500)
-				.send({ error: 'Failed to create active shifts' });
-		} finally {
-			client.release();
-		}
-	});
-
 	fastify.post('/insertActiveShifts', async (request, reply) => {
 		const myData = request.body;
 
@@ -427,6 +371,182 @@ async function routes(fastify, options) {
 			return reply
 				.status(500)
 				.send({ error: 'Failed to retrieve active shifts' });
+		} finally {
+			client.release();
+		}
+	});
+
+	fastify.get('/getUnassignedShifts', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { group_id, shift_type_id, date } = request.query;
+
+		// group_id is required – return an error if it's missing.
+		if (!group_id) {
+			return reply.status(400).send({ error: 'group_id is required' });
+		}
+
+		try {
+			// Base query with the required group filter.
+			let query = `
+      SELECT * FROM active_shifts
+      WHERE assigned_to IS NULL
+        AND schedule_group_id = $1
+    `;
+			const queryParams = [group_id];
+
+			// Optionally filter by shift_type_id.
+			if (shift_type_id) {
+				queryParams.push(shift_type_id);
+				query += ` AND shift_type_id = $${queryParams.length}`;
+			}
+
+			// Optionally filter by date.
+			if (date) {
+				queryParams.push(date);
+				query += ` AND date = $${queryParams.length}`;
+			}
+
+			const result = await client.query(query, queryParams);
+
+			return reply.status(200).send({
+				message: 'Unassigned shifts retrieved successfully',
+				unassigned_shifts: result.rows,
+			});
+		} catch (error) {
+			console.error('Error retrieving unassigned shifts:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to retrieve unassigned shifts' });
+		} finally {
+			client.release();
+		}
+	});
+
+	fastify.post('/insertAvailableForShifts', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { shift_ids, user_id } = request.body;
+
+		// Validate that shift_ids is a non-empty array and that user_id is provided.
+		if (!Array.isArray(shift_ids) || shift_ids.length === 0) {
+			client.release();
+			return reply
+				.status(400)
+				.send({ error: 'shift_ids must be a non-empty array' });
+		}
+		if (!user_id) {
+			client.release();
+			return reply.status(400).send({ error: 'user_id is required' });
+		}
+
+		try {
+			// Start the transaction.
+			await client.query('BEGIN');
+
+			// Build the bulk insert query.
+			// We are going to insert one row per shift id with its associated user_id.
+			// For example, if there are two shift_ids, we want to build a query like:
+			// INSERT INTO available_for_shift (shift_id, user_id)
+			// VALUES ($1, $2), ($3, $4)
+			let valuesClause = '';
+			const queryParams = [];
+
+			shift_ids.forEach((shiftId, index) => {
+				// For each shift, add two parameters: one for shift_id and one for user_id.
+				const shiftParamIndex = queryParams.length + 1; // current parameter index for shift_id
+				const userParamIndex = queryParams.length + 2; // current parameter index for user_id
+				queryParams.push(shiftId, user_id);
+				valuesClause += `($${shiftParamIndex}, $${userParamIndex})`;
+				if (index < shift_ids.length - 1) {
+					valuesClause += ', ';
+				}
+			});
+
+			const insertQuery = `
+      INSERT INTO available_for_shift (shift_id, user_id)
+      VALUES ${valuesClause}
+    `;
+
+			// Execute the bulk insert.
+			await client.query(insertQuery, queryParams);
+
+			// Commit the transaction.
+			await client.query('COMMIT');
+
+			return reply
+				.status(200)
+				.send({ message: 'Available shifts inserted successfully' });
+		} catch (error) {
+			// If any error occurs, rollback the transaction.
+			await client.query('ROLLBACK');
+			console.error('Error inserting available shifts:', error);
+			return reply
+				.status(500)
+				.send({ error: 'Failed to insert available shifts' });
+		} finally {
+			// Always release the client back to the pool.
+			client.release();
+		}
+	});
+
+	fastify.get('/getScheduleForGroup', async (request, reply) => {
+		const client = await fastify.pg.connect();
+		const { group_id } = request.query;
+
+		// Validate that group_id is provided.
+		if (!group_id) {
+			client.release();
+			return reply.status(400).send({ error: 'group_id is required' });
+		}
+
+		try {
+			const query = `
+      SELECT 
+        a.shift_id,
+        a.shift_type_id,
+        a.assigned_to,
+        a.start_time,
+        a.end_time,
+        a.date,
+        a.description,
+        a.schedule_group_id,
+        -- Aggregate available people into a JSON array including their names.
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'user_id', afs.user_id,
+              'first_name', acc.first_name,
+              'last_name', acc.last_name
+            )
+          ) FILTER (WHERE afs.user_id IS NOT NULL),
+          '[]'
+        ) AS available_people
+      FROM active_shifts a
+      LEFT JOIN available_for_shift afs
+        ON a.shift_id = afs.shift_id
+      LEFT JOIN account acc
+        ON afs.user_id = acc.user_id
+      WHERE a.schedule_group_id = $1
+      GROUP BY 
+        a.shift_id,
+        a.shift_type_id,
+        a.assigned_to,
+        a.start_time,
+        a.end_time,
+        a.date,
+        a.description,
+        a.schedule_group_id
+      ORDER BY a.date, a.start_time
+    `;
+
+			const result = await client.query(query, [group_id]);
+
+			return reply.status(200).send({
+				message: 'Schedule retrieved successfully',
+				schedule: result.rows,
+			});
+		} catch (error) {
+			console.error('Error retrieving schedule:', error);
+			return reply.status(500).send({ error: 'Failed to retrieve schedule' });
 		} finally {
 			client.release();
 		}
