@@ -1,4 +1,3 @@
-// assign_shifts.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
 import { AuthContext } from '../../context/AuthContext';
@@ -9,16 +8,14 @@ function AssignShifts() {
 	const { user } = useContext(AuthContext);
 	const { toast } = useToast();
 
-	// State for the group id fetched from the user details.
+	// States
 	const [group_id, setGroupId] = useState(null);
-	// State for the schedule fetched from the backend.
 	const [schedule, setSchedule] = useState([]);
-	// State for assignments: an array of { shift_id, user_id }.
 	const [assignments, setAssignments] = useState([]);
-	// State to store which shift is currently active for assignment.
 	const [activeAssignmentShift, setActiveAssignmentShift] = useState(null);
+	const [submitting, setSubmitting] = useState(false); // ✅ Fix: Ensure submitting is defined
 
-	// Fetch the user's schedule groups if no group_id is set.
+	// Fetch user's schedule group
 	useEffect(() => {
 		async function fetchUserGroup() {
 			if (!user?.uuid) return;
@@ -27,21 +24,17 @@ function AssignShifts() {
 					`${import.meta.env.VITE_BASE_ADDR}/get-user?uuid=${user.uuid}`
 				);
 				const data = await response.json();
-				if (response.ok) {
-					if (data.scheduleGroups && data.scheduleGroups.length > 0) {
-						const firstGroup = data.scheduleGroups[0];
-						setGroupId(firstGroup.group_id || firstGroup.id);
-					} else {
-						toast({
-							description: 'No schedule groups found for user',
-							variant: 'destructive',
-						});
-					}
+				if (response.ok && data.scheduleGroups.length > 0) {
+					setGroupId(
+						data.scheduleGroups[0].group_id || data.scheduleGroups[0].id
+					);
 				} else {
-					toast({ description: data.error, variant: 'destructive' });
+					toast({
+						description: 'No schedule groups found.',
+						variant: 'destructive',
+					});
 				}
 			} catch (error) {
-				console.error(error);
 				toast({
 					description: 'Failed to fetch user group',
 					variant: 'destructive',
@@ -51,7 +44,7 @@ function AssignShifts() {
 		fetchUserGroup();
 	}, [user, toast]);
 
-	// Fetch schedule from /getScheduleForGroup when group_id changes.
+	// Fetch schedule based on group_id
 	useEffect(() => {
 		async function fetchSchedule() {
 			if (!group_id) return;
@@ -68,7 +61,6 @@ function AssignShifts() {
 					toast({ description: data.error, variant: 'destructive' });
 				}
 			} catch (error) {
-				console.error(error);
 				toast({
 					description: 'Failed to fetch schedule',
 					variant: 'destructive',
@@ -78,28 +70,26 @@ function AssignShifts() {
 		fetchSchedule();
 	}, [group_id, toast]);
 
-	// Open the assignment modal for a specific shift.
-	const handleOpenAssignment = (shift) => {
-		setActiveAssignmentShift(shift);
-	};
-
-	// When a user is selected for a shift.
-	const handleSelectAvailablePerson = (shift_id, user_id) => {
-		// Add or update the assignment for this shift.
-		setAssignments((prev) => {
-			const existing = prev.find((a) => a.shift_id === shift_id);
-			if (existing) {
-				return prev.map((a) =>
-					a.shift_id === shift_id ? { shift_id, user_id } : a
-				);
-			} else {
-				return [...prev, { shift_id, user_id }];
-			}
-		});
+	// Select user for shift
+	const handleSelectAvailablePerson = (
+		shift_id,
+		user_id,
+		first_name,
+		last_name
+	) => {
+		setAssignments((prev) =>
+			prev.some((a) => a.shift_id === shift_id)
+				? prev.map((a) =>
+						a.shift_id === shift_id
+							? { shift_id, user_id, first_name, last_name }
+							: a
+				  )
+				: [...prev, { shift_id, user_id, first_name, last_name }]
+		);
 		setActiveAssignmentShift(null);
 	};
 
-	// Submit all assignments via the POST endpoint.
+	// Submit assignments
 	const handleSubmitAssignments = async () => {
 		if (assignments.length === 0) {
 			toast({
@@ -108,6 +98,7 @@ function AssignShifts() {
 			});
 			return;
 		}
+		setSubmitting(true);
 		try {
 			const response = await fetch(
 				`${import.meta.env.VITE_BASE_ADDR}/assignShifts`,
@@ -125,140 +116,119 @@ function AssignShifts() {
 				toast({ description: result.error, variant: 'destructive' });
 			}
 		} catch (error) {
-			console.error(error);
 			toast({
 				description: 'Failed to submit assignments',
 				variant: 'destructive',
 			});
+		} finally {
+			setSubmitting(false);
 		}
 	};
 
 	return (
 		<Layout>
-			<div className="p-4">
-				<h1 className="text-2xl font-bold mb-4">Group Schedule</h1>
+			<div className="p-6 max-w-3xl mx-auto bg-white dark:bg-gray-900 shadow-lg rounded-lg">
+				<h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-center">
+					Group Schedule
+				</h1>
+
 				{schedule.length === 0 ? (
-					<p>No schedule available.</p>
+					<p className="text-center text-gray-600 dark:text-gray-400">
+						No schedule available.
+					</p>
 				) : (
 					<div className="space-y-6">
-						{schedule.map((shift) => (
-							<div
-								key={shift.shift_id}
-								className="p-4 border rounded shadow-sm">
-								<p>
-									<strong>Shift ID:</strong> {shift.shift_id}
-								</p>
-								<p>
-									<strong>Date:</strong> {shift.date}
-								</p>
-								<p>
-									<strong>Time:</strong> {shift.start_time} - {shift.end_time}
-								</p>
-								<p>
-									<strong>Description:</strong> {shift.description}
-								</p>
-								<div className="mt-2">
-									<p className="font-semibold">Available People:</p>
-									{shift.available_people &&
-									shift.available_people.length > 0 ? (
-										<ul className="list-disc pl-5">
-											{shift.available_people.map((person) => (
-												<li key={person.user_id}>
-													{person.first_name} {person.last_name}
-												</li>
-											))}
-										</ul>
-									) : (
-										<p className="text-sm italic text-gray-500">
-											No available people.
+						{schedule.map((shift) => {
+							const assignedUser = assignments.find(
+								(a) => a.shift_id === shift.shift_id
+							);
+							return (
+								<div
+									key={shift.shift_id}
+									className={`p-4 border rounded-lg shadow-md transition-all ${
+										assignedUser
+											? 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+											: 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
+									}`}>
+									<div className="flex justify-between items-center">
+										<p className="font-semibold text-lg text-gray-800 dark:text-gray-100">
+											Shift #{shift.shift_id}
+										</p>
+										<Button
+											onClick={() => setActiveAssignmentShift(shift)}
+											className={`${
+												assignedUser
+													? 'bg-gray-500 dark:bg-gray-600'
+													: 'bg-blue-500 hover:bg-blue-600'
+											} text-white px-4 py-2 text-sm`}>
+											{assignedUser ? 'Assigned' : 'Assign Shift'}
+										</Button>
+									</div>
+									<p className="text-gray-600 dark:text-gray-300">
+										<strong>Date:</strong> {shift.date}
+									</p>
+									<p className="text-gray-600 dark:text-gray-300">
+										<strong>Time:</strong> {shift.start_time} - {shift.end_time}
+									</p>
+									<p className="text-gray-600 dark:text-gray-300">
+										<strong>Description:</strong> {shift.description}
+									</p>
+
+									{assignedUser && (
+										<p className="mt-2 text-green-600 dark:text-green-400">
+											<strong>Assigned to:</strong> {assignedUser.first_name}{' '}
+											{assignedUser.last_name}
 										</p>
 									)}
 								</div>
-								<div className="mt-2">
-									<Button
-										onClick={() => handleOpenAssignment(shift)}
-										className="bg-blue-500 hover:bg-blue-600 text-white">
-										Assign This Shift
-									</Button>
-								</div>
-								{assignments.find((a) => a.shift_id === shift.shift_id) && (
-									<p className="mt-2 text-green-600">
-										Assigned to:{' '}
-										{(() => {
-											const assignment = assignments.find(
-												(a) => a.shift_id === shift.shift_id
-											);
-											const person = shift.available_people.find(
-												(p) => p.user_id === assignment.user_id
-											);
-											return person
-												? `${person.first_name} ${person.last_name}`
-												: assignment.user_id;
-										})()}
-									</p>
-								)}
-							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 
-				{/* Modal for selecting an available user */}
+				{/* Assignment Modal */}
 				{activeAssignmentShift && (
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-						<div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
-							<h2 className="text-xl font-bold mb-4">
-								Select a user for shift {activeAssignmentShift.shift_id}
+						<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+							<h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+								Select a user for Shift #{activeAssignmentShift.shift_id}
 							</h2>
-							{activeAssignmentShift.available_people &&
-							activeAssignmentShift.available_people.length > 0 ? (
-								<ul className="space-y-2">
-									{activeAssignmentShift.available_people.map((person) => (
+							<ul className="space-y-2">
+								{activeAssignmentShift.available_people?.length ? (
+									activeAssignmentShift.available_people.map((person) => (
 										<li
 											key={person.user_id}
-											className="border p-2 rounded cursor-pointer hover:bg-gray-100"
+											className="border p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
 											onClick={() =>
 												handleSelectAvailablePerson(
 													activeAssignmentShift.shift_id,
-													person.user_id
+													person.user_id,
+													person.first_name,
+													person.last_name
 												)
 											}>
 											{person.first_name} {person.last_name}
 										</li>
-									))}
-								</ul>
-							) : (
-								<p>No available users for this shift.</p>
-							)}
-							<div className="mt-4 flex justify-end">
-								<Button
-									onClick={() => setActiveAssignmentShift(null)}
-									className="bg-gray-500 hover:bg-gray-600 text-white">
-									Cancel
-								</Button>
-							</div>
+									))
+								) : (
+									<p className="text-gray-600 dark:text-gray-400">
+										No available users.
+									</p>
+								)}
+							</ul>
 						</div>
 					</div>
 				)}
 
-				{/* Display current assignments and submit button */}
+				{/* Submit Button */}
 				{assignments.length > 0 && (
-					<div className="mt-6 border p-4 rounded">
-						<h2 className="text-xl font-bold mb-2">Current Assignments</h2>
-						<ul className="list-disc pl-5">
-							{assignments.map((assignment) => (
-								<li key={assignment.shift_id}>
-									Shift {assignment.shift_id} assigned to user{' '}
-									{assignment.user_id}
-								</li>
-							))}
-						</ul>
-						<div className="mt-4">
-							<Button
-								onClick={handleSubmitAssignments}
-								className="bg-green-500 hover:bg-green-600 text-white">
-								Submit Assignments
-							</Button>
-						</div>
+					<div className="mt-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 shadow-md">
+						<Button
+							onClick={handleSubmitAssignments}
+							disabled={submitting}
+							className="w-full bg-green-500 hover:bg-green-600 text-white">
+							{submitting ? 'Submitting...' : 'Submit Assignments'}
+						</Button>
 					</div>
 				)}
 			</div>
