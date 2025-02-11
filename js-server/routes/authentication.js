@@ -98,11 +98,10 @@ async function routes(fastify, options) {
 
 	// CREATES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { email, first_name, last_name, role } = request.body;
+		const { email, first_name, last_name, role, groups } = request.body;
 		const client = await fastify.pg.connect();
 		try {
-			fetchDataStart(request);
-
+			// Create new user
 			const status = await createNewUser(
 				client,
 				email,
@@ -111,13 +110,27 @@ async function routes(fastify, options) {
 				role
 			);
 
-			fetchDataEnd(request);
-
-			if (status === 'success') {
-				return reply.send({ message: 'User created successfully' });
-			} else {
+			if (status !== 'success') {
 				return reply.send({ message: 'User creation failed' });
 			}
+
+			// Get the created user's ID
+			const userResult = await client.query(
+				'SELECT user_id FROM account WHERE email = $1',
+				[email]
+			);
+			const userId = userResult.rows[0].user_id;
+
+			// Assign groups
+			if (groups && groups.length > 0) {
+				const insertGroupQuery = `
+				INSERT INTO account_schedule_groups (user_id, group_id)
+				VALUES ${groups.map((_, i) => `($1, $${i + 2})`).join(', ')}
+			`;
+				await client.query(insertGroupQuery, [userId, ...groups]);
+			}
+
+			return reply.send({ message: 'User created successfully' });
 		} catch (error) {
 			console.error(error);
 			return reply.status(500).send({ message: 'Internal server error' });
@@ -125,6 +138,7 @@ async function routes(fastify, options) {
 			client.release();
 		}
 	});
+
 
 	// VERIFIES THAT THE SET PASSWORD LINK (TOKEN) IS VALID
 	fastify.get('/setPassword', async (request, reply) => {

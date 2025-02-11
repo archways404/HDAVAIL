@@ -15,15 +15,28 @@ import { AuthContext } from '../../context/AuthContext';
 const Invite = () => {
 	const { user } = useContext(AuthContext);
 
+	console.log('groups: ', user.groups);
+
 	// Form states
 	const [email, setEmail] = useState('');
 	const [firstName, setFirstName] = useState('');
 	const [lastName, setLastName] = useState('');
 	const [role, setRole] = useState('worker'); // default role
+	const [selectedGroups, setSelectedGroups] = useState([]); // Track selected groups
 
 	// To track any errors or success messages
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(null);
+
+	// Toggle group selection
+	const toggleGroup = (groupId) => {
+		setSelectedGroups(
+			(prevGroups) =>
+				prevGroups.includes(groupId)
+					? prevGroups.filter((id) => id !== groupId) // Remove if already selected
+					: [...prevGroups, groupId] // Add if not selected
+		);
+	};
 
 	// Handle form submission
 	const handleSubmit = async (e) => {
@@ -34,6 +47,7 @@ const Invite = () => {
 			first_name: firstName,
 			last_name: lastName,
 			role: role,
+			groups: selectedGroups, // Send selected groups
 		};
 
 		try {
@@ -57,6 +71,7 @@ const Invite = () => {
 			setFirstName('');
 			setLastName('');
 			setRole('worker');
+			setSelectedGroups([]); // Reset selected groups
 			setSuccess('Invite sent successfully!');
 			setError(null);
 		} catch (err) {
@@ -67,7 +82,7 @@ const Invite = () => {
 
 	return (
 		<Layout>
-			<div className="invite-form p-6 max-w-lg mx-auto bg-white dark:bg-gray-900 rounded-lg shadow-md">
+			<div className="invite-form p-6 max-w-lg mx-auto bg-white dark:bg-gray-900 rounded-lg">
 				<h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
 					Send an Invite
 				</h2>
@@ -137,7 +152,7 @@ const Invite = () => {
 							Role:
 						</Label>
 						<Select
-							onValueChange={(value) => setRole(value)}
+							onValueChange={setRole}
 							value={role}
 							className="mt-1">
 							<SelectTrigger>
@@ -149,6 +164,30 @@ const Invite = () => {
 								<SelectItem value="maintainer">Maintainer</SelectItem>
 							</SelectContent>
 						</Select>
+					</div>
+
+					{/* Group Selection */}
+					<div>
+						<Label className="text-gray-700 dark:text-gray-300">
+							Assign Groups:
+						</Label>
+						<div className="flex flex-wrap gap-2 mt-2">
+							{user.groups.map((group) => (
+								<Button
+									key={group.id}
+									type="button"
+									onClick={() => toggleGroup(group.id)}
+									className={`border-2 px-4 py-2 ${
+										selectedGroups.includes(group.id)
+											? 'border-green-500 text-green-500' // ✅ Green outline when selected
+											: 'border-white text-white' // ✅ Black outline when unselected
+									}`}
+									variant="ghost" // ✅ Ensures it doesn’t interfere with custom styles
+								>
+									{group.name}
+								</Button>
+							))}
+						</div>
 					</div>
 
 					{/* Submit Button */}
