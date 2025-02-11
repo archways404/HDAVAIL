@@ -4,6 +4,7 @@ import Layout from '../../components/Layout';
 
 const Welcome = () => {
 	const { user } = useContext(AuthContext);
+	console.log('user', user);
 
 	if (!user) {
 		return null;
@@ -39,6 +40,20 @@ const Welcome = () => {
 								Role:
 							</span>{' '}
 							{user.role}
+						</p>
+						<p>
+							<span className="font-semibold text-gray-800 dark:text-white">
+								Groups:
+							</span>{' '}
+							{user.groups && user.groups.length > 0
+								? user.groups.map((group, index) => (
+										<span key={group.id}>
+											{group.name}
+											{index < user.groups.length - 1 ? ', ' : ''}{' '}
+											{/* Add comma between items */}
+										</span>
+								  ))
+								: 'No groups'}
 						</p>
 					</div>
 				</div>

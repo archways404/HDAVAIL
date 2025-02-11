@@ -1,4 +1,6 @@
 const { login } = require('../functions/login');
+const { getUserGroups } = require('../functions/login');
+
 const { createNewUser } = require('../functions/register');
 const { findUserByResetToken } = require('../functions/register');
 const { userSetNewPassword } = require('../functions/register');
@@ -51,9 +53,6 @@ async function routes(fastify, options) {
 
 			const user = await login(client, email, password, ip, deviceId);
 
-			console.log('user:', user);
-			console.log('ip:', ip);
-
 			if (!user.error) {
 				const authToken = fastify.jwt.sign(
 					{
@@ -62,6 +61,7 @@ async function routes(fastify, options) {
 						role: user.role,
 						first: user.first_name,
 						last: user.last_name,
+						groups: user.userGroups,
 					},
 					{ expiresIn: '15m' }
 				);
@@ -258,6 +258,50 @@ async function routes(fastify, options) {
 		async (request, reply) => {
 			const user = request.user;
 			console.log('user: ', user);
+
+			try {
+				// Fetch user groups using imported function
+				const userGroups = await getUserGroups(fastify.pg, user.uuid);
+
+				// Create auth token including groups
+				const authToken = fastify.jwt.sign(
+					{
+						uuid: user.uuid,
+						email: user.email,
+						role: user.role,
+						first: user.first,
+						last: user.last,
+						groups: userGroups, // ✅ Groups included in the authToken
+					},
+					{ expiresIn: '15m' }
+				);
+
+				// Set the authToken cookie
+				reply.setCookie('authToken', authToken, {
+					httpOnly: true,
+					sameSite: 'None',
+					secure: true,
+					path: '/',
+				});
+
+				return reply.send({
+					message: 'You are authenticated and token has been refreshed',
+					user: user,
+					groups: userGroups, // Optional: return groups in response for debugging
+				});
+			} catch (err) {
+				return reply.status(500).send({ error: 'Internal Server Error' });
+			}
+		}
+	);
+
+	/*
+	fastify.get(
+		'/protected',
+		{ preValidation: fastify.verifyJWT },
+		async (request, reply) => {
+			const user = request.user;
+			console.log('user: ', user);
 			const authToken = fastify.jwt.sign(
 				{
 					uuid: user.uuid,
@@ -282,6 +326,7 @@ async function routes(fastify, options) {
 			});
 		}
 	);
+	*/
 
 	fastify.post('/logout', async (request, reply) => {
 		reply.clearCookie('authToken', {
@@ -293,6 +338,6 @@ async function routes(fastify, options) {
 
 		return reply.send({ message: 'Logged out successfully' });
 	});
-};
+}
 
 module.exports = routes;
