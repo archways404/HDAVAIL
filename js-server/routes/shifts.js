@@ -154,13 +154,24 @@ async function routes(fastify, options) {
 			// - The shift belongs to the specified group.
 			// - And the shift is not already marked as available for the user.
 			let query = `
-      SELECT * FROM active_shifts
-      WHERE assigned_to IS NULL
-        AND schedule_group_id = $1
-        AND shift_id NOT IN (
-          SELECT shift_id FROM available_for_shift WHERE user_id = $2
-        )
-    `;
+  SELECT 
+    ash.shift_id,
+    ash.shift_type_id,
+    ash.assigned_to,
+    ash.start_time,
+    ash.end_time,
+    ash.date,
+    st.name_long,
+    st.name_short
+  FROM active_shifts as ash
+  JOIN shift_types st ON ash.shift_type_id = st.shift_type_id  -- Join with shift_types table
+  WHERE ash.assigned_to IS NULL
+    AND ash.schedule_group_id = $1
+    AND ash.shift_id NOT IN (
+      SELECT shift_id FROM available_for_shift WHERE user_id = $2
+    )
+`;
+
 			const queryParams = [group_id, user_id];
 
 			// Optionally filter by shift_type_id.
