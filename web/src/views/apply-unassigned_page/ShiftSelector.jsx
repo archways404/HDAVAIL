@@ -72,65 +72,102 @@ function ShiftSelector({ shifts, user, groupId, toast, setUnassignedShifts }) {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-10">
+			{' '}
+			{/* Increased space between date groups */}
 			{/* Render shifts grouped by date */}
 			{Object.keys(groupedShifts).length === 0 ? (
 				<p>No unassigned shifts available.</p>
 			) : (
-				Object.keys(groupedShifts).map((date) => (
-					<div key={date}>
-						<h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-							{date}
-						</h3>{' '}
-						{/* Date header */}
-						<div className="space-y-4 mt-2">
-							{groupedShifts[date].map((shift) => (
-								<div
-									key={shift.shift_id}
-									className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-									<div className="flex items-center space-x-4">
-										<input
-											type="checkbox"
-											id={shift.shift_id}
-											checked={selectedShifts.includes(shift.shift_id)}
-											onChange={() => handleShiftToggle(shift.shift_id)}
-											className="h-5 w-5 accent-blue-500"
-										/>
-										<label
-											htmlFor={shift.shift_id}
-											className="flex-1 text-gray-700 dark:text-gray-300">
-											<div className="font-medium">{shift.name_short}</div>
-											<div>
-												{shift.start_time.slice(0, 5)} -{' '}
-												{shift.end_time.slice(0, 5)} {/* Shorten time */}
-											</div>
-											{/* If description is available */}
-											{shift.description && shift.description !== 'null' ? (
-												<p className="text-gray-600 dark:text-gray-400">
-													{shift.description}
-												</p>
-											) : (
-												<p className="text-gray-500 dark:text-gray-400 italic">
-													No description available
-												</p>
-											)}
-										</label>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				))
-			)}
+				Object.keys(groupedShifts)
+					.sort((a, b) => new Date(a) - new Date(b)) // Sort dates from earliest to latest
+					.map((date, index, array) => (
+						<div
+							key={date}
+							className="relative space-y-4">
+							{/* Date Header */}
+							<h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide uppercase bg-gray-200 dark:bg-gray-700 py-3 px-5 rounded-md shadow-sm">
+								{date}
+							</h3>
 
+							{/* Shift Cards */}
+							<div className="space-y-4 mt-2">
+								{groupedShifts[date].map((shift, shiftIndex) => {
+									const isSelected = selectedShifts.includes(shift.shift_id);
+									return (
+										<div
+											key={shift.shift_id}
+											className={`p-4 rounded-lg shadow-md transition-all duration-300 cursor-pointer border ${
+												isSelected
+													? 'bg-blue-600 text-white border-blue-700 shadow-lg'
+													: 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:shadow-lg'
+											} ${
+												shiftIndex === groupedShifts[date].length - 1
+													? 'border-b-2 border-gray-300 dark:border-gray-700'
+													: ''
+											}`}
+											onClick={() => handleShiftToggle(shift.shift_id)}>
+											<div className="flex items-center space-x-4">
+												<input
+													type="checkbox"
+													id={shift.shift_id}
+													checked={isSelected}
+													onChange={() => handleShiftToggle(shift.shift_id)}
+													className="h-5 w-5 accent-blue-500"
+												/>
+												<label
+													htmlFor={shift.shift_id}
+													className={`flex-1 ${
+														isSelected
+															? 'text-white'
+															: 'text-gray-800 dark:text-gray-300'
+													}`}>
+													<div className="font-medium">{shift.name_short}</div>
+													<div className="text-sm">
+														{shift.start_time.slice(0, 5)} -{' '}
+														{shift.end_time.slice(0, 5)}
+													</div>
+													{shift.description && shift.description !== 'null' ? (
+														<p
+															className={`text-sm ${
+																isSelected
+																	? 'text-white'
+																	: 'text-gray-600 dark:text-gray-400'
+															}`}>
+															{shift.description}
+														</p>
+													) : (
+														<p
+															className={`text-sm italic ${
+																isSelected
+																	? 'text-gray-300'
+																	: 'text-gray-500 dark:text-gray-400'
+															}`}>
+															No description available
+														</p>
+													)}
+												</label>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+
+							{/* Bottom Separator Line between Date Groups */}
+							{index !== array.length - 1 && (
+								<div className="border-t-2 border-gray-300 dark:border-gray-700 mt-6"></div>
+							)}
+						</div>
+					))
+			)}
 			{/* Apply Button */}
 			<Button
 				onClick={handleApplyShifts}
 				disabled={submitting || selectedShifts.length === 0}
-				className={`w-full py-3 font-semibold ${
+				className={`w-full py-3 font-semibold mt-6 rounded-lg transition-all ${
 					submitting || selectedShifts.length === 0
 						? 'bg-gray-400 cursor-not-allowed'
-						: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+						: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
 				}`}>
 				{submitting ? 'Applying...' : 'Apply Selected Shifts'}
 			</Button>
