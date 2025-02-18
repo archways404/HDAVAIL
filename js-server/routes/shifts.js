@@ -281,41 +281,69 @@ async function routes(fastify, options) {
 		try {
 			const query = `
       SELECT 
-        a.shift_id,
-        a.shift_type_id,
-        a.assigned_to,
-        a.start_time,
-        a.end_time,
-        a.date,
-        a.description,
-        a.schedule_group_id,
-        -- Aggregate available people into a JSON array including their names.
-        COALESCE(
-          json_agg(
+    a.shift_id,
+    a.shift_type_id,
+    st.name_long AS shift_type_long,
+    st.name_short AS shift_type_short,
+    a.assigned_to,
+    assigned_user.email AS assigned_user_email, -- Include the assigned user's email
+    assigned_user.first_name AS assigned_first_name,
+    assigned_user.last_name AS assigned_last_name,
+    a.start_time,
+    a.end_time,
+    a.date,
+    a.description,
+    a.schedule_group_id,
+
+    -- Aggregate available people into a JSON array including their names and emails.
+    COALESCE(
+        json_agg(
             DISTINCT jsonb_build_object(
-              'user_id', afs.user_id,
-              'first_name', acc.first_name,
-              'last_name', acc.last_name
+                'user_id', afs.user_id,
+                'first_name', available_users.first_name,
+                'last_name', available_users.last_name,
+                'email', available_users.email
             )
-          ) FILTER (WHERE afs.user_id IS NOT NULL),
-          '[]'
-        ) AS available_people
-      FROM active_shifts a
-      LEFT JOIN available_for_shift afs
-        ON a.shift_id = afs.shift_id
-      LEFT JOIN account acc
-        ON afs.user_id = acc.user_id
-      WHERE a.schedule_group_id = $1
-      GROUP BY 
-        a.shift_id,
-        a.shift_type_id,
-        a.assigned_to,
-        a.start_time,
-        a.end_time,
-        a.date,
-        a.description,
-        a.schedule_group_id
-      ORDER BY a.date, a.start_time
+        ) FILTER (WHERE afs.user_id IS NOT NULL),
+        '[]'
+    ) AS available_people
+
+FROM active_shifts a
+
+-- Join to get shift type names
+LEFT JOIN shift_types st
+    ON a.shift_type_id = st.shift_type_id
+
+-- Join to get assigned user's details (email and name)
+LEFT JOIN account assigned_user
+    ON a.assigned_to = assigned_user.user_id
+
+-- Join available users for the shift
+LEFT JOIN available_for_shift afs
+    ON a.shift_id = afs.shift_id
+
+-- Join to get available users' details
+LEFT JOIN account available_users
+    ON afs.user_id = available_users.user_id
+
+WHERE a.schedule_group_id = $1
+
+GROUP BY 
+    a.shift_id,
+    a.shift_type_id,
+    st.name_long,
+    st.name_short,
+    a.assigned_to,
+    assigned_user.email,
+    assigned_user.first_name,
+    assigned_user.last_name,
+    a.start_time,
+    a.end_time,
+    a.date,
+    a.description,
+    a.schedule_group_id
+
+ORDER BY a.date, a.start_time;
     `;
 
 			const result = await client.query(query, [group_id]);
