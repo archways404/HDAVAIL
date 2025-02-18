@@ -14,10 +14,16 @@ function ApplyUnassigned() {
 	const [groupId, setGroupId] = useState(null);
 	const [unassignedShifts, setUnassignedShifts] = useState([]);
 
+	// Automatically select group if only one is available
+	useEffect(() => {
+		if (user.groups.length === 1) {
+			setGroupId(user.groups[0].id);
+		}
+	}, [user.groups]);
+
 	// Fetch unassigned shifts based on selected group
 	useEffect(() => {
 		if (groupId) {
-			// Make API call to fetch unassigned shifts
 			const fetchUnassignedShifts = async () => {
 				try {
 					const response = await fetch(
@@ -49,22 +55,31 @@ function ApplyUnassigned() {
 
 	return (
 		<Layout>
-			<div className="container">
-				{/* GroupSelector to choose group */}
-				<GroupSelector
-					groups={user.groups}
-					onGroupSelect={setGroupId}
-				/>
-
-				{/* If group is selected, show ShiftSelector */}
-				{groupId && (
-					<ShiftSelector
-						shifts={unassignedShifts}
-						user={user}
-						groupId={groupId}
-						toast={toast}
-						setUnassignedShifts={setUnassignedShifts} // Passing function to update unassignedShifts
+			<div className="flex flex-col items-center justify-center min-h-screen">
+				{/* Show GroupSelector if no group is selected */}
+				{!groupId ? (
+					<GroupSelector
+						groups={user.groups}
+						onGroupSelect={setGroupId}
 					/>
+				) : (
+					<div className="w-full max-w-lg p-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-600">
+						{/* Display ShiftSelector */}
+						<ShiftSelector
+							shifts={unassignedShifts}
+							user={user}
+							groupId={groupId}
+							toast={toast}
+							setUnassignedShifts={setUnassignedShifts}
+						/>
+
+						{/* Button to re-select group */}
+						<Button
+							onClick={() => setGroupId(null)}
+							className="mt-4 w-full bg-gray-500 hover:bg-gray-600 text-white rounded-lg py-2">
+							Change Group
+						</Button>
+					</div>
 				)}
 			</div>
 		</Layout>
