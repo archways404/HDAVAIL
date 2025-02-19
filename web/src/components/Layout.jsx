@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from 'react';
+import { MdOutlinePrivacyTip } from 'react-icons/md';
 import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
@@ -42,10 +43,9 @@ function Layout({ children }) {
 			{/* Button to manually trigger Cookie Consent UI */}
 			<button
 				type="button"
-				className="absolute bottom-4 left-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-blue-400 transition"
+				className="absolute bottom-4 left-4 px-4 py-2 bg-stone-950 hover:bg-red-600 text-white rounded-md shadow-md transition"
 				onClick={() => window.CookieConsent?.showPreferences()}>
-				{' '}
-				Manage Cookie Preferences
+				<MdOutlinePrivacyTip className="text-xl" />
 			</button>
 
 			<div>
