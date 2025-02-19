@@ -4,12 +4,12 @@ import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import { ConsentContext } from '../context/ConsentContext'; // Import Consent Context
+import { ConsentContext } from '../context/ConsentContext';
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
-	const { consent, showConsentBanner } = useContext(ConsentContext); // ✅ Access Consent Data
+	const { consent } = useContext(ConsentContext);
 
 	// ✅ Log only when `consent` actually changes
 	useEffect(() => {
@@ -17,6 +17,12 @@ function Layout({ children }) {
 			console.log('Updated Consent:', consent);
 		}
 	}, [consent]);
+
+	// Retrieve all the fields
+	const cookie = CookieConsent.getCookie();
+	const preferences = CookieConsent.getUserPreferences();
+
+	console.log('pref', preferences);
 
 	return (
 		<div
@@ -33,17 +39,21 @@ function Layout({ children }) {
 				<ThemeToggle />
 			</div>
 
-			{/* Show user's cookie choices */}
-			<div className="absolute top-4 left-4 bg-gray-800 text-white p-2 rounded">
-				<p>Consent: {consent ? JSON.stringify(consent) : 'No consent given'}</p>
-			</div>
-
 			{/* Button to manually trigger Cookie Consent UI */}
 			<button
-				onClick={() => showConsentBanner()} // ✅ Now Works!
-				className="absolute bottom-4 left-4 px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-400 transition">
-				Change Consent
+				type="button"
+				className="absolute bottom-4 left-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-blue-400 transition"
+				onClick={() => window.CookieConsent?.showPreferences()}>
+				{' '}
+				Manage Cookie Preferences
 			</button>
+
+			<div>
+				<h2>Consent ID: {consent?.consentId}</h2>
+				<p>Accept Type: {consent?.acceptType}</p>
+				<p>Accepted Categories: {consent?.acceptedCategories}</p>
+				<p>Rejected Categories: {consent?.rejectedCategories}</p>
+			</div>
 
 			{/* Main Content */}
 			{children}
