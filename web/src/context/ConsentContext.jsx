@@ -60,8 +60,6 @@ export function ConsentProvider({ children }) {
 				sameSite: 'Strict',
 			});
 
-			console.log('Updated Consent:', newConsent);
-
 			return newConsent;
 		});
 	};
@@ -73,15 +71,12 @@ export function ConsentProvider({ children }) {
 			if (consentCookie) {
 				try {
 					const parsedConsent = JSON.parse(consentCookie);
-
-					// ✅ Only update if the consent has actually changed
-					if (
-						JSON.stringify(parsedConsent) !== JSON.stringify(previousConsent)
-					) {
-						console.log('User Cookie Consent:', parsedConsent);
-						setConsent(parsedConsent);
-						setPreviousConsent(parsedConsent); // ✅ Store previous consent
-					}
+					setConsent((prevConsent) => {
+						if (JSON.stringify(parsedConsent) !== JSON.stringify(prevConsent)) {
+							return parsedConsent;
+						}
+						return prevConsent;
+					});
 				} catch (error) {
 					console.error('Error parsing cookieConsent:', error);
 				}
@@ -90,10 +85,9 @@ export function ConsentProvider({ children }) {
 
 		fetchConsent();
 
-		// ✅ Check for cookie updates every second but only update if needed
 		const interval = setInterval(fetchConsent, 1000);
-		return () => clearInterval(interval); // Cleanup on unmount
-	}, [previousConsent]); // ✅ Only run if `previousConsent` changes
+		return () => clearInterval(interval);
+	}, []); // ✅ Run only once on mount
 
 	return (
 		<ConsentContext.Provider
@@ -107,7 +101,7 @@ export function ConsentProvider({ children }) {
 					manageButtonText: 'Manage Cookies',
 					privacyPolicyText: 'Privacy Policy',
 				}}
-				showManageButton={true} // We control it manually
+				showManageButton={true}
 				displayType="modal"
 				theme="dark"
 				privacyPolicyUrl="https://example.com/privacy"
@@ -129,8 +123,8 @@ function ConsentContextUpdater({ setShowConsentBanner }) {
 	const { showConsentBanner } = useCookieConsent();
 
 	useEffect(() => {
-		setShowConsentBanner(() => showConsentBanner); // ✅ Store function safely
-	}, [showConsentBanner, setShowConsentBanner]);
+		setShowConsentBanner(() => showConsentBanner);
+	}, []); // ✅ Remove dependencies to run only on mount
 
 	return null;
 }
