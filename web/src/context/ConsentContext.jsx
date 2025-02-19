@@ -11,6 +11,8 @@ export function ConsentProvider({ children }) {
 	const [showConsentBanner, setShowConsentBanner] = useState(() => () => {}); // Default no-op function
 	const [previousConsent, setPreviousConsent] = useState(null); // ✅ Store previous consent
 
+	/*
+
 	// Function to update consent and store it in cookies
 	const updateConsent = (preferences) => {
 		setConsent(preferences); // ✅ Update state immediately
@@ -19,6 +21,48 @@ export function ConsentProvider({ children }) {
 			path: '/',
 			secure: true,
 			sameSite: 'Strict',
+		});
+	};
+  */
+
+	const updateConsent = (preferences) => {
+		setConsent((prevConsent) => {
+			// Preserve existing values and only update what's provided
+			const newConsent = {
+				Analytics: {
+					consented:
+						preferences.Analytics !== undefined
+							? preferences.Analytics
+							: prevConsent?.Analytics?.consented ?? false,
+					timestamp: new Date().toISOString(),
+				},
+				Social: {
+					consented:
+						preferences.Social !== undefined
+							? preferences.Social
+							: prevConsent?.Social?.consented ?? false,
+					timestamp: new Date().toISOString(),
+				},
+				Advertising: {
+					consented:
+						preferences.Advertising !== undefined
+							? preferences.Advertising
+							: prevConsent?.Advertising?.consented ?? false,
+					timestamp: new Date().toISOString(),
+				},
+			};
+
+			// ✅ Save the updated consent to cookies
+			Cookies.set('cookieConsent', JSON.stringify(newConsent), {
+				expires: 365,
+				path: '/',
+				secure: true,
+				sameSite: 'Strict',
+			});
+
+			console.log('Updated Consent:', newConsent);
+
+			return newConsent;
 		});
 	};
 
