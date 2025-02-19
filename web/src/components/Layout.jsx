@@ -1,26 +1,22 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import GDPRPopup from '@/components/GDPRPopup';
+import { ConsentContext } from '../context/ConsentContext'; // Import Consent Context
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
-	const [cookieConsent, setCookieConsent] = useState(null);
+	const { consent, showConsentBanner } = useContext(ConsentContext); // ✅ Access Consent Data
 
-	// Check cookie consent on mount
+	// ✅ Log only when `consent` actually changes
 	useEffect(() => {
-		const consent = localStorage.getItem('cookieConsent');
-		setCookieConsent(consent);
-	}, []);
-
-	const handleCookieDecision = (decision) => {
-		localStorage.setItem('cookieConsent', decision);
-		setCookieConsent(decision);
-	};
+		if (consent !== null) {
+			console.log('Updated Consent:', consent);
+		}
+	}, [consent]);
 
 	return (
 		<div
@@ -37,15 +33,20 @@ function Layout({ children }) {
 				<ThemeToggle />
 			</div>
 
-			{/* GDPR Popup */}
-			{cookieConsent === null || cookieConsent === 'denied' ? (
-				<GDPRPopup onDecision={handleCookieDecision} />
-			) : (
-				<>
-					{/* Main Content */}
-					{children}
-				</>
-			)}
+			{/* Show user's cookie choices */}
+			<div className="absolute top-4 left-4 bg-gray-800 text-white p-2 rounded">
+				<p>Consent: {consent ? JSON.stringify(consent) : 'No consent given'}</p>
+			</div>
+
+			{/* Button to manually trigger Cookie Consent UI */}
+			<button
+				onClick={() => showConsentBanner()} // ✅ Now Works!
+				className="absolute bottom-4 left-4 px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-400 transition">
+				Change Consent
+			</button>
+
+			{/* Main Content */}
+			{children}
 
 			{/* Toasts */}
 			<Toaster />

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ConsentProvider } from './context/ConsentContext';
 
 import Index from './views/home_page/index.jsx';
 import Login from './views/login_page/login.jsx';
@@ -41,180 +42,185 @@ createRoot(document.getElementById('root')).render(
 	<BrowserRouter>
 		<ThemeProvider>
 			<AuthProvider>
-				<Routes>
-					<Route
-						path="/"
-						element={
-							<UnAuthWrapper>
-								<Index />
-							</UnAuthWrapper>
-						}
-					/>
-					<Route
-						path="/login"
-						element={
-							<UnAuthWrapper>
-								<Login />
-							</UnAuthWrapper>
-						}
-					/>
-					<Route
-						path="/resetPassword"
-						element={
-							<UnAuthWrapper>
-								<ResetPass />
-							</UnAuthWrapper>
-						}
-					/>
-					<Route
-						path="/setpass"
-						element={
-							<UnAuthWrapper>
-								<SetPass />
-							</UnAuthWrapper>
-						}
-					/>
-					<Route
-						path="/forgotpass"
-						element={
-							<UnAuthWrapper>
-								<ForgotPass />
-							</UnAuthWrapper>
-						}
-					/>
-					<Route
-						path="/serverinfo"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
-								<ServerInfo />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/invite"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
-								<Invite />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/manage-users"
-						element={
-							<AuthWrapper allowedUserRoles={['admin']}>
-								<ManageUsers />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/user/:uuid"
-						element={
-							<AuthWrapper allowedUserRoles={['admin']}>
-								<UserDetail />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/schedule"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
-								<Schedule />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/apply-unassigned"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker']}>
-								<ApplyUnassigned />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/assign-shifts"
-						element={
-							<AuthWrapper allowedUserRoles={['admin']}>
-								<AssignShifts />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/create-schedule"
-						element={
-							<AuthWrapper allowedUserRoles={['admin']}>
-								<CreateSchedule />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/handle-shifts"
-						element={
-							<AuthWrapper allowedUserRoles={['admin']}>
-								<TestHandleShifts />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/create-template"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
-								<CreateTemplate />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/server-panel"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
-								<ServerPanel />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/email-status"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
-								<EmailStatus />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/welcome"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker', 'maintainer']}>
-								<Welcome />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/handle-status"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker', 'maintainer']}>
-								<StatusMsg />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/calendarlink"
-						element={
-							<AuthWrapper allowedUserRoles={['admin', 'worker', 'maintainer']}>
-								<CalendarLink />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="/logout"
-						element={
-							<AuthWrapper>
-								<Logout />
-							</AuthWrapper>
-						}
-					/>
-					<Route
-						path="*"
-						element={<NotFound />}
-					/>
-				</Routes>
+				<ConsentProvider>
+					<Routes>
+						<Route
+							path="/"
+							element={
+								<UnAuthWrapper>
+									<Index />
+								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/login"
+							element={
+								<UnAuthWrapper>
+									<Login />
+								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/resetPassword"
+							element={
+								<UnAuthWrapper>
+									<ResetPass />
+								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/setpass"
+							element={
+								<UnAuthWrapper>
+									<SetPass />
+								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/forgotpass"
+							element={
+								<UnAuthWrapper>
+									<ForgotPass />
+								</UnAuthWrapper>
+							}
+						/>
+						<Route
+							path="/serverinfo"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
+									<ServerInfo />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/invite"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
+									<Invite />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/manage-users"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<ManageUsers />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/user/:uuid"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<UserDetail />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/schedule"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
+									<Schedule />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/apply-unassigned"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'worker']}>
+									<ApplyUnassigned />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/assign-shifts"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<AssignShifts />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/create-schedule"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<CreateSchedule />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/handle-shifts"
+							element={
+								<AuthWrapper allowedUserRoles={['admin']}>
+									<TestHandleShifts />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/create-template"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
+									<CreateTemplate />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/server-panel"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
+									<ServerPanel />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/email-status"
+							element={
+								<AuthWrapper allowedUserRoles={['admin', 'maintainer']}>
+									<EmailStatus />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/welcome"
+							element={
+								<AuthWrapper
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
+									<Welcome />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/handle-status"
+							element={
+								<AuthWrapper
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
+									<StatusMsg />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/calendarlink"
+							element={
+								<AuthWrapper
+									allowedUserRoles={['admin', 'worker', 'maintainer']}>
+									<CalendarLink />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="/logout"
+							element={
+								<AuthWrapper>
+									<Logout />
+								</AuthWrapper>
+							}
+						/>
+						<Route
+							path="*"
+							element={<NotFound />}
+						/>
+					</Routes>
+				</ConsentProvider>
 			</AuthProvider>
 		</ThemeProvider>
 	</BrowserRouter>
