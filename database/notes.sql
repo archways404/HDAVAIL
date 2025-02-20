@@ -40,8 +40,6 @@ SELECT * FROM template_meta;
 
 SELECT * FROM status;
 
-SELECT * FROM status_types;
-
 
 
 -- LOGS

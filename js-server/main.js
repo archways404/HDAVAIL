@@ -15,6 +15,9 @@ const { generateICSFileForUser } = require('./functions/ical-creation');
 const { updateHDCache } = require('./functions/cache');
 const { handleHDCache } = require('./functions/cache');
 
+const { updateStatusCache } = require('./functions/statusCache');
+const { handleStatusCache } = require('./functions/statusCache');
+
 require('dotenv').config({
 	path:
 		process.env.NODE_ENV === 'production'
@@ -189,6 +192,10 @@ app.addHook('onReady', async () => {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
 
+		await updateStatusCache(client); // <-- Populate cache with data at boot
+
+		// Start listening for changes
+		await client.query('LISTEN status_channel');
 		await client.query('LISTEN active_shifts_channel');
 
 		client.on('notification', async (msg) => {
@@ -213,6 +220,12 @@ app.addHook('onReady', async () => {
 						console.error(`Error generating ICS for user ${userUUID}:`, error);
 					}
 				}
+			}
+
+			if (msg.channel === 'status_channel') {
+				const payload = JSON.parse(msg.payload);
+				console.log('Notification received:', payload);
+				await updateStatusCache(client); // <-- Populate cache with data at boot
 			}
 		});
 
