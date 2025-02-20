@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { MdOutlinePrivacyTip } from 'react-icons/md';
 import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
@@ -8,49 +8,54 @@ import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ConsentContext } from '../context/ConsentContext';
 
+import { AppSidebar } from '@/components/appsidebar';
+
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
-	const { consent } = useContext(ConsentContext);
 
-	return (
-		<div
-			className={`min-h-screen flex flex-col ${
-				theme === 'dark'
-					? 'bg-gray-900 text-gray-300'
-					: 'bg-gray-100 text-gray-700'
-			}`}>
-			{/* Navbar - Sticks to Top */}
-			<div className="sticky top-0 z-40 bg-gray-700 text-white shadow-md flex justify-between items-center px-4 py-2">
-				{/* Navbar */}
-				<Navbar />
+	if (user) {
+		return (
+			<div className="grid grid-cols-[15rem_auto] gap-2 h-screen">
+				{/* Sidebar (Fixed Width) */}
+				<div className="w-60">
+					<AppSidebar />
+				</div>
 
-				{/* Theme Toggle - Top Right */}
-				<ThemeToggle />
+				{/* Main Content (Takes Remaining Space) */}
+				<div className="flex flex-col flex-1 min-h-screen">
+					{/* Navbar (Fixed at the Top of the Main Content) */}
+					<div className="h-16 flex items-center bg-gray-100 dark:bg-gray-900 shadow-md">
+						<Navbar />
+					</div>
+
+					{/* Scrollable Main Content */}
+					<main className="flex-1 overflow-auto">{children}</main>
+				</div>
+
+				{/* Other Global Components */}
+				<Toaster />
 			</div>
+		);
+	} else {
+		return (
+			<div className="h-screen">
+				{/* Main Content (Takes Remaining Space) */}
+				<div className="flex flex-col flex-1 min-h-screen">
+					{/* Navbar (Fixed at the Top of the Main Content) */}
+					<div className="h-16 w-full flex items-center bg-gray-100 dark:bg-gray-900 shadow-md">
+						<Navbar />
+					</div>
 
-			{/* Page Content - Expands to Fill */}
-			<div className="flex-grow p-4">{children}</div>
+					{/* Scrollable Main Content */}
+					<main className="flex-1 overflow-auto">{children}</main>
+				</div>
 
-			{/* Toast Notifications */}
-			<Toaster />
-
-			{/* Sticky Cookie Button - Bottom Left */}
-			<button
-				type="button"
-				className="fixed bottom-10 right-10 px-5 py-5 bg-stone-950 hover:bg-red-600 text-white rounded-md shadow-md transition"
-				onClick={() => window.CookieConsent?.showPreferences()}>
-				<MdOutlinePrivacyTip className="text-xl" />
-			</button>
-
-			{/* Status Messages - Bottom Right Notifications */}
-			{/*  
-			<div className="fixed bottom-4 right-4 z-50">
-				<DisplayStatus />
+				{/* Other Global Components */}
+				<Toaster />
 			</div>
-			*/}
-		</div>
-	);
+		);
+	}
 }
 
 export default Layout;
