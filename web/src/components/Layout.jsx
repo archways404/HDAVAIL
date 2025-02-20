@@ -12,18 +12,11 @@ function Layout({ children }) {
 	const { user } = useContext(AuthContext);
 	const { consent } = useContext(ConsentContext);
 
-	// ✅ Log only when `consent` actually changes
-	useEffect(() => {
-		if (consent !== null) {
-			console.log('Updated Consent:', consent);
-		}
-	}, [consent]);
-
-	// Retrieve all the fields
-	const cookie = CookieConsent.getCookie();
 	const preferences = CookieConsent.getUserPreferences();
 
-	console.log('pref', preferences);
+	console.log('pref', preferences.acceptedCategories);
+
+	console.log('consnt', consent.acceptedCategories);
 
 	return (
 		<div
@@ -47,13 +40,6 @@ function Layout({ children }) {
 				onClick={() => window.CookieConsent?.showPreferences()}>
 				<MdOutlinePrivacyTip className="text-xl" />
 			</button>
-
-			<div>
-				<h2>Consent ID: {consent?.consentId}</h2>
-				<p>Accept Type: {consent?.acceptType}</p>
-				<p>Accepted Categories: {consent?.acceptedCategories}</p>
-				<p>Rejected Categories: {consent?.rejectedCategories}</p>
-			</div>
 
 			{/* Main Content */}
 			{children}

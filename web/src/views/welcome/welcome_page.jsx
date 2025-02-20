@@ -1,9 +1,13 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import { ConsentContext } from '../../context/ConsentContext';
+
 import Layout from '../../components/Layout';
 
 const Welcome = () => {
 	const { user } = useContext(AuthContext);
+	const { consent } = useContext(ConsentContext);
+
 	console.log('user', user);
 
 	if (!user) {
@@ -14,6 +18,17 @@ const Welcome = () => {
 	const formattedFirstName =
 		user.first.charAt(0).toUpperCase() + user.first.slice(1);
 	const formattedLastName = user.last.charAt(0).toUpperCase();
+
+	// Define all possible categories
+	const allCategories = ['necessary', 'preferences', 'analytics'];
+
+	// Map the preferences to an object with default false values
+	const permissionsObject = allCategories.reduce((acc, category) => {
+		acc[category] = consent.acceptedCategories.includes(category);
+		return acc;
+	}, {});
+
+	console.log('permissionObject', permissionsObject);
 
 	return (
 		<Layout>
@@ -55,6 +70,20 @@ const Welcome = () => {
 								  ))
 								: 'No groups'}
 						</p>
+						<br></br>
+						<p>
+							<span className="font-semibold text-gray-800 dark:text-white">
+								Permissions:
+							</span>
+						</p>
+						{/* Render permissions on separate lines */}
+						{Object.entries(permissionsObject).map(([key, value]) => (
+							<p
+								key={key}
+								className="text-gray-800 dark:text-white mt-2">
+								{key}: {value ? '✅' : '❌'}
+							</p>
+						))}
 					</div>
 				</div>
 			</div>

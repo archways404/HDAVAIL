@@ -20,8 +20,6 @@ export function ConsentProvider({ children }) {
 			acceptedCategories: cookie.categories || [],
 		};
 
-		console.log('Updated Consent:', userConsent);
-
 		// ✅ Ensure preferences modal pre-selects accepted categories
 		if (userConsent.acceptedCategories.length > 0) {
 			CookieConsent.acceptCategory(userConsent.acceptedCategories);
