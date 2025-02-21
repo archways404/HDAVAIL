@@ -13,13 +13,17 @@ import { AppSidebar } from '@/components/appsidebar';
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
+	const { consent } = useContext(ConsentContext);
 
 	if (user) {
 		return (
 			<div className="grid grid-cols-[15rem_auto] gap-2 h-screen">
 				{/* Sidebar (Fixed Width) */}
 				<div className="w-60">
-					<AppSidebar />
+					<AppSidebar
+						user={user}
+						consent={consent}
+					/>
 				</div>
 
 				{/* Main Content (Takes Remaining Space) */}

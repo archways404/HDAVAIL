@@ -10,6 +10,8 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@chakra-ui/react": "^3.8.1",
+		"@emotion/react": "^11.14.0",
 		"@fingerprintjs/fingerprintjs": "^4.5.0",
 		"@fullcalendar/core": "^6.1.15",
 		"@fullcalendar/daygrid": "^6.1.15",

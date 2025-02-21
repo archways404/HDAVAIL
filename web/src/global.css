@@ -105,6 +105,14 @@
   }
 }
 
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-color: transparent !important;
+}
+
 
 /* Hide milestone section */
 /*

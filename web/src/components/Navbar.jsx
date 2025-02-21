@@ -224,8 +224,8 @@ const Navbar = () => {
 				theme === 'dark'
 					? 'bg-gray-800 text-white'
 					: 'bg-gray-200 text-gray-900'
-			} p-4`}>
-			<ul className="flex space-x-4">
+			} p-4 w-full`}>
+			<ul className="flex w-full justify-between px-5">
 				<li>
 					<Link
 						to="/welcome"

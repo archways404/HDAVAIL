@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { Calendar, Home, Inbox, Search, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 import { LuCircleUserRound } from 'react-icons/lu';
 import { FaChevronUp } from 'react-icons/fa';
 import { TbLogout } from 'react-icons/tb';
+
+import { CgProfile } from 'react-icons/cg';
+
+//import UserIcon from '../assets/user.png'; // Import the image
+import UserIcon from '../assets/user1.png'; // Import the image
+
+import ThemeToggle from './ThemeToggle';
 
 import {
 	Sidebar,
@@ -47,7 +55,27 @@ const items = [
 	{ title: 'Settings', url: '/settings', icon: Settings },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ user, consent }) {
+	if (!user) {
+		return null;
+	}
+
+	// Format the user's name
+	const formattedFirstName =
+		user.first.charAt(0).toUpperCase() + user.first.slice(1);
+	const formattedLastName = user.last.charAt(0).toUpperCase();
+
+	// Define all possible categories
+	const allCategories = ['necessary', 'preferences', 'analytics'];
+
+	// Map the preferences to an object with default false values
+	const permissionsObject = allCategories.reduce((acc, category) => {
+		acc[category] = consent.acceptedCategories.includes(category);
+		return acc;
+	}, {});
+
+	console.log('permissions obj', permissionsObject);
+
 	return (
 		<SidebarProvider open={true}>
 			{/* Fixed Sidebar */}
@@ -74,7 +102,13 @@ export function AppSidebar() {
 													<span>{item.title}</span>
 												</Link>
 											</SidebarMenuButton>
-											<SidebarMenuBadge>NEW</SidebarMenuBadge>
+											<SidebarMenuBadge>
+												<Badge
+													variant="outline"
+													className="border-green-500 text-green-500 text-[10px] font-light px-1.5 py-0.5 h-auto rounded-xl">
+													NEW
+												</Badge>
+											</SidebarMenuBadge>
 										</SidebarMenuItem>
 									))}
 								</SidebarMenu>
@@ -91,26 +125,35 @@ export function AppSidebar() {
 										{/* Profile Button */}
 										<Button
 											variant="ghost"
-											className="w-full flex justify-between items-center px-4 py-6 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all">
-											<div className="flex items-center gap-3">
+											className="w-full flex items-center px-4 py-6 rounded-lg bg-transparent border-2 border-gray-700 hover:bg-gray-700 transition-all">
+											<div className="flex items-center gap-3 flex-1 min-w-0">
 												{/* Avatar */}
-												<LuCircleUserRound className="w-16 h-16 text-gray-400" />
+												<img
+													src={UserIcon}
+													alt="User Avatar"
+													className="w-8 h-8 rounded-full object-cover"
+												/>
 
 												{/* User Info */}
-												<div className="text-left">
-													<p className="text-sm font-medium text-white">
-														John S
+												<div className="text-left flex-1 min-w-0">
+													<p className="text-[clamp(12px, 4vw, 16px)] font-medium text-white truncate">
+														{formattedFirstName} {formattedLastName}{' '}
+														dwadwajdwajdiawdjawi
 													</p>
-													<p className="text-xs text-gray-400">ab1234@mau.se</p>
+													<p className="text-[clamp(10px, 3vw, 14px)] text-gray-400 truncate">
+														{user.email}
+													</p>
 												</div>
 											</div>
-											<FaChevronUp className="w-4 h-4 text-gray-400" />
+
+											{/* Chevron (Prevent Overflow) */}
+											<FaChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
 										</Button>
 									</DropdownMenuTrigger>
 
 									{/* Dropdown Content */}
-									<DropdownMenuContent className="w-56 bg-gray-800 shadow-lg rounded-md p-2">
-										<DropdownMenuItem className="p-2 hover:bg-gray-700 rounded-md flex gap-3 items-center text-red-400">
+									<DropdownMenuContent className="w-56 bg-transparent rounded-lg">
+										<DropdownMenuItem className="p-2 hover:bg-gray-700 rounded-lg flex gap-3 items-center text-red-400">
 											<TbLogout className="w-4 h-4" />
 											<span>Log out</span>
 										</DropdownMenuItem>
