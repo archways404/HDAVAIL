@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { Calendar, Home, Inbox, Search, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { MdOutlinePrivacyTip } from 'react-icons/md';
 
 import { LuCircleUserRound } from 'react-icons/lu';
 import { FaChevronUp } from 'react-icons/fa';
@@ -13,7 +14,6 @@ import { CgProfile } from 'react-icons/cg';
 import UserIcon from '../assets/user1.png'; // Import the image
 
 import ThemeToggle from './ThemeToggle';
-
 import {
 	Sidebar,
 	SidebarContent,
@@ -121,6 +121,29 @@ export function AppSidebar({ user, consent }) {
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<DropdownMenu>
+									<div className="grid grid-cols-2 gap-4 p-6">
+										{/* Theme Toggle */}
+										<div className="flex justify-center">
+											<ThemeToggle className="p-2 border border-gray-700 rounded-lg hover:bg-gray-700 transition-all w-full max-w-[120px]" />
+										</div>
+
+										{/* Cookie Preferences Button */}
+										<div className="flex justify-center">
+											<Button
+												type="button"
+												className="px-2 py-2 bg-transparent rounded-lg hover:bg-gray-700 transition-all"
+												onClick={() => window.CookieConsent?.showPreferences()}>
+												<MdOutlinePrivacyTip
+													className="text-white"
+													style={{
+														width: '24px',
+														height: '24px',
+														color: 'red',
+													}}
+												/>
+											</Button>
+										</div>
+									</div>
 									<DropdownMenuTrigger asChild>
 										{/* Profile Button */}
 										<Button
@@ -133,7 +156,6 @@ export function AppSidebar({ user, consent }) {
 													alt="User Avatar"
 													className="w-8 h-8 rounded-full object-cover"
 												/>
-
 												{/* User Info */}
 												<div className="text-left flex-1 min-w-0">
 													<p className="text-[clamp(12px, 4vw, 16px)] font-medium text-white truncate">
