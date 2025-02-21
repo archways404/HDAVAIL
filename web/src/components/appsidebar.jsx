@@ -159,8 +159,7 @@ export function AppSidebar({ user, consent }) {
 												{/* User Info */}
 												<div className="text-left flex-1 min-w-0">
 													<p className="text-[clamp(12px, 4vw, 16px)] font-medium text-white truncate">
-														{formattedFirstName} {formattedLastName}{' '}
-														dwadwajdwajdiawdjawi
+														{formattedFirstName} {formattedLastName}
 													</p>
 													<p className="text-[clamp(10px, 3vw, 14px)] text-gray-400 truncate">
 														{user.email}
