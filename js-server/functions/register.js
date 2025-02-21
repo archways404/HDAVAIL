@@ -22,7 +22,7 @@ async function registerNewUser(first_name, email, resetToken) {
 
 		await sendEmail(
 			email,
-			'HDAVAIL Registration',
+			'R3DSYS Registration',
 			plainTextContent,
 			htmlContent
 		);
@@ -196,12 +196,7 @@ async function forgotPasswordSendEmail(client, email) {
 			newRecoveryKey
 		);
 
-		await sendEmail(
-			email,
-			'HDAVAIL Reset Password',
-			plainTextContent,
-			htmlContent
-		);
+		await sendEmail(email, 'Password Reset', plainTextContent, htmlContent);
 
 		return 'success';
 	} catch (error) {

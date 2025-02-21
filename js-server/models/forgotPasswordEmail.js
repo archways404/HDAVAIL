@@ -9,7 +9,7 @@ function forgotPasswordEmailGetPlainTextContent(username, resetToken) {
 	return `
     Hi ${username}!
 
-		It seems like you requested to reset your password for HDAVAIL. Click the following link to reset it:
+		It seems like you requested to reset the password to your R3DSYS account. Click the following link to reset it:
 
 		${process.env.EMAIL_BASE_URL}/resetPassword?token=${resetToken}
 
@@ -17,16 +17,16 @@ function forgotPasswordEmailGetPlainTextContent(username, resetToken) {
 
 		Thank you!
 
-		The HDAVAIL Team
+		/ R3DSYS /
     `;
 }
 
 function forgotPasswordEmailGetHtmlContent(username, resetToken) {
 	return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #4CAF50; text-align: center;">Reset Your HDAVAIL Password</h2>
+                <h2 style="color: #4CAF50; text-align: center;">Reset Password</h2>
                 <p>Hi <strong>${username}</strong>,</p>
-                <p>We received a request to reset your password for <strong>HDAVAIL</strong>. Click the button below to reset your password:</p>
+                <p>We received a request to reset your password for <strong>R3DSYS</strong>. Click the button below to reset your password:</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a 
                         href="${process.env.EMAIL_BASE_URL}/resetPassword?token=${resetToken}" 
@@ -37,8 +37,8 @@ function forgotPasswordEmailGetHtmlContent(username, resetToken) {
                 <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
                 <p><a href="${process.env.EMAIL_BASE_URL}/resetPassword?token=${resetToken}" style="color: #4CAF50;">${process.env.EMAIL_BASE_URL}/resetPassword?token=${resetToken}</a></p>
                 <p>If you did not request a password reset, you can safely ignore this email. Your password will not be changed.</p>
-                <p>Thank you,</p>
-                <p>The <strong>HDAVAIL</strong> Team</p>
+                <p>Thank you!</p>
+                <p>/ <strong>R3DSYS</strong> /</p>
             </div>
     `;
 }
