@@ -1,15 +1,9 @@
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import DisplayStatus from '../../components/DisplayStatus';
 
 function Index() {
 	return (
 		<Layout>
-			{/* 
-			<div className="absolute bottom-4 right-4">
-				<DisplayStatus />
-			</div>
-			*/}
 			{/* Flex container for ASCII Art and Button */}
 			<div className="flex flex-col items-center justify-between min-h-screen text-center w-full">
 				{/* ASCII Art - Ensured proper spacing and wrapping */}

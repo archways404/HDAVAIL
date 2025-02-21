@@ -40,9 +40,9 @@ import './global.css';
 
 createRoot(document.getElementById('root')).render(
 	<BrowserRouter>
-		<ThemeProvider>
-			<AuthProvider>
-				<ConsentProvider>
+		<ConsentProvider>
+			<ThemeProvider>
+				<AuthProvider>
 					<Routes>
 						<Route
 							path="/"
@@ -220,9 +220,9 @@ createRoot(document.getElementById('root')).render(
 							element={<NotFound />}
 						/>
 					</Routes>
-				</ConsentProvider>
-			</AuthProvider>
-		</ThemeProvider>
+				</AuthProvider>
+			</ThemeProvider>
+		</ConsentProvider>
 	</BrowserRouter>
 );
 
