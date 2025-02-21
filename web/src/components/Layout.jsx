@@ -10,56 +10,59 @@ import { ConsentContext } from '../context/ConsentContext';
 
 import { AppSidebar } from '@/components/appsidebar';
 
+import Background from './Background'; // Import background
+
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
 	const { consent } = useContext(ConsentContext);
 
-	if (user) {
-		return (
-			<div className="grid grid-cols-[15rem_auto] gap-2 h-screen">
-				{/* Sidebar (Fixed Width) */}
-				<div className="w-60">
-					<AppSidebar
-						user={user}
-						consent={consent}
-					/>
-				</div>
+	return (
+		<div className="relative h-screen w-full">
+			{/* Background Component */}
+			<Background />
 
-				{/* Main Content (Takes Remaining Space) */}
-				<div className="flex flex-col flex-1 min-h-screen">
-					{/* Navbar (Fixed at the Top of the Main Content) */}
-					<div className="h-16 flex items-center bg-gray-100 dark:bg-gray-900 shadow-md">
-						<Navbar />
+			{/* Main Content */}
+			{user ? (
+				<div className="grid grid-cols-[15rem_auto] gap-2 relative h-screen">
+					{/* Sidebar */}
+					<div className="w-60 relative z-10">
+						<AppSidebar
+							user={user}
+							consent={consent}
+						/>
 					</div>
 
-					{/* Scrollable Main Content */}
-					<main className="flex-1 overflow-auto">{children}</main>
-				</div>
+					{/* Main Content */}
+					<div className="flex flex-col flex-1 min-h-screen relative z-10">
+						{/* Navbar */}
+						<div className="h-16 flex items-center bg-gray-100/30 dark:bg-gray-900/30 shadow-md">
+							<Navbar />
+						</div>
 
-				{/* Other Global Components */}
-				<Toaster />
-			</div>
-		);
-	} else {
-		return (
-			<div className="h-screen">
-				{/* Main Content (Takes Remaining Space) */}
-				<div className="flex flex-col flex-1 min-h-screen">
-					{/* Navbar (Fixed at the Top of the Main Content) */}
-					<div className="h-16 w-full flex items-center bg-gray-100 dark:bg-gray-900 shadow-md">
-						<Navbar />
+						{/* Scrollable Main Content */}
+						<main className="flex-1 overflow-auto">{children}</main>
 					</div>
 
-					{/* Scrollable Main Content */}
-					<main className="flex-1 overflow-auto">{children}</main>
+					{/* Other Global Components */}
+					<Toaster />
 				</div>
-
-				{/* Other Global Components */}
-				<Toaster />
-			</div>
-		);
-	}
+			) : (
+				<div className="h-screen relative z-10">
+					<div className="flex flex-col flex-1 min-h-screen">
+						<div className="h-16 w-full flex items-center bg-gray-100/30 dark:bg-gray-900/30 shadow-md">
+							<Navbar />
+						</div>
+						<main className="flex-1 overflow-auto">{children}</main>
+					</div>
+					<Toaster />
+				</div>
+			)}
+		</div>
+	);
 }
 
 export default Layout;
+
+
+//09090b
