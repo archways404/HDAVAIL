@@ -1,56 +1,68 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { MdOutlinePrivacyTip } from 'react-icons/md';
 import ThemeToggle from './ThemeToggle';
 import Navbar from './Navbar';
+import DisplayStatus from './DisplayStatus';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import GDPRPopup from '@/components/GDPRPopup';
+import { ConsentContext } from '../context/ConsentContext';
+
+import { AppSidebar } from '@/components/appsidebar';
+
+import Background from './Background'; // Import background
 
 function Layout({ children }) {
 	const { theme } = useContext(ThemeContext);
 	const { user } = useContext(AuthContext);
-	const [cookieConsent, setCookieConsent] = useState(null);
-
-	// Check cookie consent on mount
-	useEffect(() => {
-		const consent = localStorage.getItem('cookieConsent');
-		setCookieConsent(consent);
-	}, []);
-
-	const handleCookieDecision = (decision) => {
-		localStorage.setItem('cookieConsent', decision);
-		setCookieConsent(decision);
-	};
+	const { consent } = useContext(ConsentContext);
 
 	return (
-		<div
-			className={`min-h-screen ${
-				theme === 'dark'
-					? 'bg-gray-900 text-gray-300'
-					: 'bg-gray-100 text-gray-700'
-			}`}>
-			{/* Navbar */}
-			<Navbar />
+		<div className="relative h-screen w-full">
+			{/* Background Component */}
+			<Background />
 
-			{/* Theme Toggle */}
-			<div className="absolute top-4 right-4">
-				<ThemeToggle />
-			</div>
+			{/* Main Content */}
+			{user ? (
+				<div className="grid grid-cols-[15rem_auto] gap-2 relative h-screen">
+					{/* Sidebar */}
+					<div className="w-60 relative z-10">
+						<AppSidebar
+							user={user}
+							consent={consent}
+						/>
+					</div>
 
-			{/* GDPR Popup */}
-			{cookieConsent === null || cookieConsent === 'denied' ? (
-				<GDPRPopup onDecision={handleCookieDecision} />
-			) : (
-				<>
 					{/* Main Content */}
-					{children}
-				</>
-			)}
+					<div className="flex flex-col flex-1 min-h-screen relative z-10">
+						{/* Navbar */}
+						<div className="h-16 flex items-center">
+							<Navbar />
+						</div>
 
-			{/* Toasts */}
-			<Toaster />
+						{/* Scrollable Main Content */}
+						<main className="flex-1 overflow-auto">{children}</main>
+					</div>
+
+					{/* Other Global Components */}
+					<Toaster />
+				</div>
+			) : (
+				<div className="h-screen relative z-10">
+					<div className="flex flex-col flex-1 min-h-screen">
+						<div className="h-16 w-full flex items-center">
+							<Navbar />
+						</div>
+						<main className="flex-1 overflow-auto">{children}</main>
+					</div>
+					<Toaster />
+				</div>
+			)}
 		</div>
 	);
 }
 
 export default Layout;
+
+
+//09090b

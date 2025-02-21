@@ -1,4 +1,6 @@
 const { login } = require('../functions/login');
+const { getUserGroups } = require('../functions/login');
+
 const { createNewUser } = require('../functions/register');
 const { findUserByResetToken } = require('../functions/register');
 const { userSetNewPassword } = require('../functions/register');
@@ -8,6 +10,8 @@ const { endRequest } = require('../functions/processingTime');
 const { calculateRequest } = require('../functions/processingTime');
 const { fetchDataStart } = require('../functions/processingTime');
 const { fetchDataEnd } = require('../functions/processingTime');
+
+const { createAuthLog } = require('../functions/db_logs');
 
 async function routes(fastify, options) {
 	fastify.addHook('onRequest', (request, reply, done) => {
@@ -29,14 +33,14 @@ async function routes(fastify, options) {
 		{
 			config: {
 				rateLimit: {
-					max: 15,
+					max: 15000000,
 					timeWindow: '15 minutes',
 					keyGenerator: (req) => req.body?.deviceId || req.ip,
 				},
 			},
 		},
 		async (request, reply) => {
-			const { username, password, deviceId } = request.body;
+			const { email, password, deviceId } = request.body;
 			const ip = request.ip;
 
 			if (!deviceId) {
@@ -47,49 +51,86 @@ async function routes(fastify, options) {
 
 			fetchDataStart(request);
 
-			const user = await login(client, username, password, ip, deviceId);
+			const user = await login(client, email, password, ip, deviceId);
 
-			fetchDataEnd(request);
+			if (!user.error) {
+				const authToken = fastify.jwt.sign(
+					{
+						uuid: user.user_id,
+						email: user.email,
+						role: user.role,
+						first: user.first_name,
+						last: user.last_name,
+						groups: user.userGroups,
+					},
+					{ expiresIn: '15m' }
+				);
 
-			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
-				{ expiresIn: '15m' }
-			);
+				reply.setCookie('authToken', authToken, {
+					httpOnly: true,
+					sameSite: 'None',
+					secure: true,
+					path: '/',
+				});
 
-			reply.setCookie('authToken', authToken, {
-				httpOnly: true,
-				sameSite: 'None',
-				secure: true,
-				path: '/',
-			});
+				await createAuthLog(client, user.user_id, ip, deviceId, true, null);
 
-			return reply.send({ message: 'Login successful' });
+				fetchDataEnd(request);
+				return reply.send({ message: 'Login successful' });
+			} else if (user.error === 'Invalid password') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else if (user.error === 'Account with email does not exist') {
+				fetchDataEnd(request);
+				return reply.send({
+					message: 'Account does not exist or invalid password.',
+				});
+			} else {
+				fetchDataEnd(request);
+				return reply.send({
+					message: user.error,
+				});
+			}
 		}
 	);
 
 	// CREATES A NEW USER AND SENDS AN INVITE VIA EMAIL
 	fastify.post('/register', async (request, reply) => {
-		const { username, first_name, last_name, email, type } = request.body;
+		const { email, first_name, last_name, role, groups } = request.body;
 		const client = await fastify.pg.connect();
 		try {
-			fetchDataStart(request);
-
+			// Create new user
 			const status = await createNewUser(
 				client,
-				username,
+				email,
 				first_name,
 				last_name,
-				email,
-				type
+				role
 			);
 
-			fetchDataEnd(request);
-
-			if (status === 'success') {
-				return reply.send({ message: 'User created successfully' });
-			} else {
+			if (status !== 'success') {
 				return reply.send({ message: 'User creation failed' });
 			}
+
+			// Get the created user's ID
+			const userResult = await client.query(
+				'SELECT user_id FROM account WHERE email = $1',
+				[email]
+			);
+			const userId = userResult.rows[0].user_id;
+
+			// Assign groups
+			if (groups && groups.length > 0) {
+				const insertGroupQuery = `
+				INSERT INTO account_schedule_groups (user_id, group_id)
+				VALUES ${groups.map((_, i) => `($1, $${i + 2})`).join(', ')}
+			`;
+				await client.query(insertGroupQuery, [userId, ...groups]);
+			}
+
+			return reply.send({ message: 'User created successfully' });
 		} catch (error) {
 			console.error(error);
 			return reply.status(500).send({ message: 'Internal server error' });
@@ -97,6 +138,7 @@ async function routes(fastify, options) {
 			client.release();
 		}
 	});
+
 
 	// VERIFIES THAT THE SET PASSWORD LINK (TOKEN) IS VALID
 	fastify.get('/setPassword', async (request, reply) => {
@@ -229,8 +271,59 @@ async function routes(fastify, options) {
 		{ preValidation: fastify.verifyJWT },
 		async (request, reply) => {
 			const user = request.user;
+			console.log('user: ', user);
+
+			try {
+				// Fetch user groups using imported function
+				const userGroups = await getUserGroups(fastify.pg, user.uuid);
+
+				// Create auth token including groups
+				const authToken = fastify.jwt.sign(
+					{
+						uuid: user.uuid,
+						email: user.email,
+						role: user.role,
+						first: user.first,
+						last: user.last,
+						groups: userGroups, // ✅ Groups included in the authToken
+					},
+					{ expiresIn: '15m' }
+				);
+
+				// Set the authToken cookie
+				reply.setCookie('authToken', authToken, {
+					httpOnly: true,
+					sameSite: 'None',
+					secure: true,
+					path: '/',
+				});
+
+				return reply.send({
+					message: 'You are authenticated and token has been refreshed',
+					user: user,
+					groups: userGroups, // Optional: return groups in response for debugging
+				});
+			} catch (err) {
+				return reply.status(500).send({ error: 'Internal Server Error' });
+			}
+		}
+	);
+
+	/*
+	fastify.get(
+		'/protected',
+		{ preValidation: fastify.verifyJWT },
+		async (request, reply) => {
+			const user = request.user;
+			console.log('user: ', user);
 			const authToken = fastify.jwt.sign(
-				{ uuid: user.uuid, username: user.username, type: user.type },
+				{
+					uuid: user.uuid,
+					email: user.email,
+					role: user.role,
+					first: user.first,
+					last: user.last,
+				},
 				{ expiresIn: '15m' }
 			);
 
@@ -247,6 +340,7 @@ async function routes(fastify, options) {
 			});
 		}
 	);
+	*/
 
 	fastify.post('/logout', async (request, reply) => {
 		reply.clearCookie('authToken', {
@@ -258,6 +352,6 @@ async function routes(fastify, options) {
 
 		return reply.send({ message: 'Logged out successfully' });
 	});
-};
+}
 
 module.exports = routes;

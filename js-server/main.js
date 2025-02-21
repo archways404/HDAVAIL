@@ -3,20 +3,20 @@ const cors = require('@fastify/cors');
 const cookie = require('@fastify/cookie');
 const jwt = require('@fastify/jwt');
 const fastifyStatic = require('@fastify/static');
-const underPressure = require('@fastify/under-pressure');
-const WebSocket = require('ws');
 const rateLimit = require('@fastify/rate-limit');
 const metrics = require('fastify-metrics');
-const os = require('os');
 const fs = require('fs');
-const logger = require('./logger');
 const path = require('path');
 
-const { getAssignedSlots } = require('./functions/createFiles');
-const { generateICSFiles } = require('./functions/createFiles');
+const { getAffectedUsers } = require('./functions/ical-creation');
+const { getActiveShiftsForUser } = require('./functions/ical-creation');
+const { generateICSFileForUser } = require('./functions/ical-creation');
 
 const { updateHDCache } = require('./functions/cache');
 const { handleHDCache } = require('./functions/cache');
+
+const { updateStatusCache } = require('./functions/statusCache');
+const { handleStatusCache } = require('./functions/statusCache');
 
 require('dotenv').config({
 	path:
@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const JWT_SECRET = process.env.JWT_SECRET;
+
 const key = fs.readFileSync('../certificates/server-key.pem');
 const cert = fs.readFileSync('../certificates/server-cert.pem');
 
@@ -82,7 +83,7 @@ app.addHook('preParsing', async (request, reply, payload) => {
 });
 
 app.register(rateLimit, {
-	max: 150,
+	max: 1500000,
 	timeWindow: '1 minute',
 });
 
@@ -91,13 +92,23 @@ app.register(require('./connector'));
 
 // Routes
 app.register(require('./routes/authentication'));
+
 app.register(require('./routes/serverpanel'));
-app.register(require('./routes/admin'));
+
+app.register(require('./routes/shifts'));
+
+app.register(require('./routes/account_management'));
+
 app.register(require('./routes/template'));
+
 app.register(require('./routes/statistics'));
+
 app.register(require('./routes/schedule'));
+
 app.register(require('./routes/status'));
+
 app.register(require('./routes/webhook'));
+
 app.register(require('./routes/ical'), {
 	hook: 'preHandler',
 	options: {
@@ -175,36 +186,50 @@ app.listen({ port: PORT, host: HOST }, async function (err, address) {
 	}
 });
 
-// Move WebSocket setup outside app.listen
-const wss = new WebSocket.Server({ server: app.server });
-
-// Listen for WebSocket connections
-wss.on('connection', (ws) => {
-	console.log('Client connected via WebSocket');
-
-	// Handle WebSocket messages
-	ws.on('message', (message) => {
-		console.log('Received message:', message);
-		ws.send(`Echo: ${message}`);
-	});
-
-	// Handle WebSocket disconnection
-	ws.on('close', () => {
-		console.log('WebSocket client disconnected');
-	});
-
-	// Handle WebSocket errors
-	ws.on('error', (error) => {
-		console.error('WebSocket error:', error);
-	});
-});
-
 app.addHook('onReady', async () => {
 	const client = await app.pg.connect();
 	try {
 		const res = await client.query('SELECT NOW()');
 		app.log.info(`PostgreSQL connected: ${res.rows[0].now}`);
 
+		await updateStatusCache(client); // <-- Populate cache with data at boot
+
+		// Start listening for changes
+		await client.query('LISTEN status_channel');
+		await client.query('LISTEN active_shifts_channel');
+
+		client.on('notification', async (msg) => {
+			if (msg.channel === 'active_shifts_channel') {
+				const payload = JSON.parse(msg.payload);
+				console.log('Notification received:', payload);
+
+				// Get the list of affected user UUIDs.
+				const userUUIDs = await getAffectedUsers(
+					app,
+					payload.schedule_group_id
+				);
+				console.log('User UUIDs in group:', userUUIDs);
+
+				// For each user, get their active shifts and create an ICS file.
+				for (const userUUID of userUUIDs) {
+					const shifts = await getActiveShiftsForUser(app, userUUID);
+					console.log(`Active shifts for user ${userUUID}:`, shifts);
+					try {
+						await generateICSFileForUser(userUUID, shifts);
+					} catch (error) {
+						console.error(`Error generating ICS for user ${userUUID}:`, error);
+					}
+				}
+			}
+
+			if (msg.channel === 'status_channel') {
+				const payload = JSON.parse(msg.payload);
+				console.log('Notification received:', payload);
+				await updateStatusCache(client); // <-- Populate cache with data at boot
+			}
+		});
+
+		/*
 		// Populate the cache on server boot
 		await updateHDCache(client); // <-- Populate cache with data at boot
 
@@ -230,6 +255,7 @@ app.addHook('onReady', async () => {
 				await updateHDCache(client); // <-- Refresh cache when slots change
 			}
 		});
+		*/
 	} catch (err) {
 		app.log.error('PostgreSQL connection error:', err);
 		throw new Error('PostgreSQL connection is not established');

@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 async function fetchSchedule(pg, uuid) {
 	const client = await pg.connect();
 	try {

@@ -1,12 +1,12 @@
-# HDAVAIL - Requirement Specification
+# R3DSHIFT - Requirement Specification
 
 ## 1. Project Overview
 
 **Objective**:  
-HDAVAIL is a booking system designed to streamline the process of notifying the Administrator (Martin) about which available work slots the worker is available for each month. The current process involves manually checking available dates on a webpage and emailing the Administrator, which is cumbersome for both workers and the Administrator. HDAVAIL aims to simplify this by allowing workers to select available slots directly, with the Administrator managing assignments easily through the system.
+R3DSHIFT is a booking system designed to streamline the process of notifying the Administrator about which available work slots the worker is available for each month. The current process involves manually checking available dates on a webpage and emailing the Administrator, which is cumbersome for both workers and the Administrator. HDAVAIL aims to simplify this by allowing workers to select available slots directly, with the Administrator managing assignments easily through the system.
 
 **Scope**:  
-HDAVAIL will be developed as a web-based application, with potential future integration into existing workflows (e.g., generating reports for email distribution). It may also include a feature to sync with Google Calendar.
+R3DSHIFT will be developed as a web-based application, with potential future integration into existing workflows (e.g., generating reports for email distribution). It may also include a feature to sync with Google Calendar.
 
 ## 2. Target Audience
 

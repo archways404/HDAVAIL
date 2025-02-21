@@ -1,3 +1,5 @@
+//! OUTDATED - NEEDS TO BE UPDATED
+
 const requestLogs = [];
 
 // Log request data into the array

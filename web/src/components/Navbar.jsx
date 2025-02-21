@@ -11,8 +11,8 @@ const Navbar = () => {
 		return null;
 	}
 
-	const renderLinksForUserType = () => {
-		switch (user.type) {
+	const renderLinksForUserRole = () => {
+		switch (user.role) {
 			case 'worker':
 				return (
 					<>
@@ -34,13 +34,57 @@ const Navbar = () => {
 					<>
 						<li>
 							<Link
+								to="/create-template"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								templates
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/handle-shifts"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								shifts
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/apply-unassigned"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								unassigned
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/assign-shifts"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								assign
+							</Link>
+						</li>
+						<li>
+							<Link
 								to="/invite"
 								className={`${
 									theme === 'dark'
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Invite
+								invitation
 							</Link>
 						</li>
 						<li>
@@ -51,7 +95,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								CalendarLink
+								iCAL
 							</Link>
 						</li>
 						<li>
@@ -62,7 +106,18 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Manage Users
+								users
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/handle-status"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								status
 							</Link>
 						</li>
 						<li>
@@ -73,7 +128,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Schedule
+								schedule
 							</Link>
 						</li>
 						<li>
@@ -84,7 +139,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								create
+								create-schedule
 							</Link>
 						</li>
 						<li>
@@ -95,7 +150,7 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Server Info
+								s-info
 							</Link>
 						</li>
 						<li>
@@ -106,7 +161,18 @@ const Navbar = () => {
 										? 'hover:text-gray-400'
 										: 'hover:text-gray-600'
 								}`}>
-								Server-Panel
+								d-panel
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/email-status"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								email-status
 							</Link>
 						</li>
 					</>
@@ -136,19 +202,25 @@ const Navbar = () => {
 								Server-Panel
 							</Link>
 						</li>
+						<li>
+							<Link
+								to="/email-status"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								Email-Status
+							</Link>
+						</li>
 					</>
 				);
 		}
 	};
 
 	return (
-		<nav
-			className={`${
-				theme === 'dark'
-					? 'bg-gray-800 text-white'
-					: 'bg-gray-200 text-gray-900'
-			} p-4`}>
-			<ul className="flex space-x-4">
+		<nav className={`p-4 w-full`}>
+			<ul className="flex w-full justify-between px-5">
 				<li>
 					<Link
 						to="/welcome"
@@ -168,8 +240,8 @@ const Navbar = () => {
 					</Link>
 				</li>
 
-				{/* Conditionally render links based on user type */}
-				{renderLinksForUserType()}
+				{/* Conditionally render links based on user Role */}
+				{renderLinksForUserRole()}
 
 				<li>
 					<Link

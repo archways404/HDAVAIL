@@ -41,6 +41,7 @@
 		"pino-multi-stream": "^6.0.0",
 		"pino-pretty": "^11.2.2",
 		"raw-body": "^3.0.0",
+		"uuid": "^11.0.5",
 		"ws": "^8.18.0"
 	},
 	"devDependencies": {
