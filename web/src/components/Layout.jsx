@@ -36,7 +36,7 @@ function Layout({ children }) {
 					{/* Main Content */}
 					<div className="flex flex-col flex-1 min-h-screen relative z-10">
 						{/* Navbar */}
-						<div className="h-16 flex items-center bg-gray-100/30 dark:bg-gray-900/30 shadow-md">
+						<div className="h-16 flex items-center">
 							<Navbar />
 						</div>
 
@@ -50,7 +50,7 @@ function Layout({ children }) {
 			) : (
 				<div className="h-screen relative z-10">
 					<div className="flex flex-col flex-1 min-h-screen">
-						<div className="h-16 w-full flex items-center bg-gray-100/30 dark:bg-gray-900/30 shadow-md">
+						<div className="h-16 w-full flex items-center">
 							<Navbar />
 						</div>
 						<main className="flex-1 overflow-auto">{children}</main>

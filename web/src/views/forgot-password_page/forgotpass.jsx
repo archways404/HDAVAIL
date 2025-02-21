@@ -49,8 +49,8 @@ function ForgotPass() {
 
 	return (
 		<Layout>
-			<div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-				<div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 shadow-md rounded-lg">
+			<div className="flex items-center justify-center max-h-screen">
+				<div className="w-full max-w-md p-8 space-y-6 rounded-lg">
 					<h2 className="text-2xl font-semibold text-center text-gray-900 dark:text-white">
 						Reset Your Password
 					</h2>
@@ -74,7 +74,7 @@ function ForgotPass() {
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
-								className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+								className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:text-white"
 								placeholder="Enter your email"
 								required
 							/>
@@ -82,7 +82,7 @@ function ForgotPass() {
 
 						<Button
 							type="submit"
-							className="w-full px-4 py-2 mt-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+							className="w-full px-4 py-2 mt-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
 							Send Reset Link
 						</Button>
 					</form>

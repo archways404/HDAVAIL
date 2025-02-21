@@ -4,7 +4,7 @@ import Layout from '../../components/Layout';
 function Index() {
 	return (
 		<Layout>
-			<div className="flex flex-col items-center justify-center min-h-screen w-full px-4">
+			<div className="flex flex-col items-center justify-center max-h-screen w-full px-4 py-48">
 				{/* Logo / Title */}
 				<h1 className="text-7xl lg:text-8xl font-extrabold text-white tracking-wider mb-16 drop-shadow-xl">
 					<span className="text-red-600">RƎD</span>SYS

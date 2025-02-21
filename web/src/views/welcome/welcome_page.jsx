@@ -32,8 +32,8 @@ const Welcome = () => {
 
 	return (
 		<Layout>
-			<div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-				<div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-4">
+			<div className="flex flex-col items-center justify-center min-h-screen p-4">
+				<div className="max-w-md w-full rounded-lg p-6 space-y-4">
 					<h1 className="text-2xl font-semibold text-gray-800 dark:text-white text-center">
 						Welcome, {formattedFirstName} {formattedLastName}.
 					</h1>

@@ -219,12 +219,7 @@ const Navbar = () => {
 	};
 
 	return (
-		<nav
-			className={`${
-				theme === 'dark'
-					? 'bg-gray-800 text-white'
-					: 'bg-gray-200 text-gray-900'
-			} p-4 w-full`}>
+		<nav className={`p-4 w-full`}>
 			<ul className="flex w-full justify-between px-5">
 				<li>
 					<Link

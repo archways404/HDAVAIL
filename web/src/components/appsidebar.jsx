@@ -79,12 +79,12 @@ export function AppSidebar({ user, consent }) {
 	return (
 		<SidebarProvider open={true}>
 			{/* Fixed Sidebar */}
-			<div className="w-60 h-screen fixed top-0 left-0 bg-gray-900 dark:bg-gray-900 flex flex-col shadow-lg">
+			<div className="w-60 h-screen fixed top-0 left-0 flex flex-col shadow-lg">
 				{/* Sidebar Component */}
 				<Sidebar
 					collapsible="none"
 					side="left"
-					className="h-full">
+					className="h-full bg-transparent">
 					<SidebarContent className="h-full flex flex-col">
 						<SidebarGroup className="flex-1">
 							<SidebarGroupLabel className="mt-4 pl-4 text-white">
