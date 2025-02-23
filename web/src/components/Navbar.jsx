@@ -27,6 +27,28 @@ const Navbar = () => {
 								Schedule
 							</Link>
 						</li>
+						<li>
+							<Link
+								to="/apply-unassigned"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								unassigned
+							</Link>
+						</li>
+						<li>
+							<Link
+								to="/calendarlink"
+								className={`${
+									theme === 'dark'
+										? 'hover:text-gray-400'
+										: 'hover:text-gray-600'
+								}`}>
+								iCAL
+							</Link>
+						</li>
 					</>
 				);
 			case 'admin':

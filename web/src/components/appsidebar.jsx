@@ -176,7 +176,7 @@ export function AppSidebar({ user, consent }) {
 									<DropdownMenuContent className="w-56 bg-transparent rounded-lg">
 										<DropdownMenuItem className="p-2 hover:bg-gray-700 rounded-lg flex gap-3 items-center text-red-400">
 											<TbLogout className="w-4 h-4" />
-											<span>Log out</span>
+											<Link to="/logout">Sign out</Link>
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
