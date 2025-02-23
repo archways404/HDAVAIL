@@ -33,6 +33,7 @@ export function AuthProvider({ children }) {
 	};
 
 	useEffect(() => {
+		if (window.location.pathname === '/logout') return;
 		checkAuth();
 	}, [location]);
 

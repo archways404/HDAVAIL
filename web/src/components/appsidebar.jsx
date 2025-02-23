@@ -68,9 +68,9 @@ export function AppSidebar({ user, consent }) {
 	// Define all possible categories
 	const allCategories = ['necessary', 'preferences', 'analytics'];
 
-	// Map the preferences to an object with default false values
+	// Use optional chaining with a fallback to false
 	const permissionsObject = allCategories.reduce((acc, category) => {
-		acc[category] = consent.acceptedCategories.includes(category);
+		acc[category] = consent?.acceptedCategories?.includes(category) ?? false;
 		return acc;
 	}, {});
 
