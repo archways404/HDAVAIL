@@ -59,29 +59,68 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 
 	// Function to render custom event content with HoverCard
 	const renderEventContent = (eventInfo) => {
+		const { extendedProps, start, end } = eventInfo.event;
+		const assignedFirstName = extendedProps?.assignedUserFirstName || '';
+		const assignedLastName = extendedProps?.assignedUserLastName || '';
+		const assignedEmail = extendedProps?.assignedUserEmail || '';
+
+		// Format the date (YYYY-MM-DD)
+		const eventDate = new Date(start).toISOString().split('T')[0];
+
+		// Format time (HH:mm)
+		const startTime = new Date(start).toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+		const endTime = new Date(end).toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+
 		return (
 			<HoverCard>
-				<HoverCardTrigger className="cursor-pointer block p-1">
+				<HoverCardTrigger className="cursor-pointer block p-1 z-10">
 					<span className="text-sm font-medium text-gray-800 dark:text-gray-200">
 						{eventInfo.event.title}
 					</span>
 				</HoverCardTrigger>
-				<HoverCardContent className="p-4 border border-gray-300 bg-white shadow-md rounded-md dark:bg-gray-800">
-					<p className="text-sm font-semibold">{eventInfo.event.title}</p>
-					<p className="text-xs text-gray-500">
-						{new Date(eventInfo.event.start).toLocaleString()} -{' '}
-						{new Date(eventInfo.event.end).toLocaleString()}
+				<HoverCardContent className="p-3 border border-gray-300 bg-white dark:bg-gray-800 shadow-lg rounded-md z-1000 w-[250px] relative">
+					{/* Background Fix */}
+					<div className="absolute inset-0 bg-white dark:bg-gray-800 opacity-100 rounded-md"></div>
+
+					{/* Shift Title + Date */}
+					<div className="flex justify-between items-center relative">
+						<p className="text-sm font-semibold">
+							{extendedProps.shiftTypeLong}
+						</p>
+						<p className="text-xs text-gray-500 whitespace-nowrap">
+							{eventDate}
+						</p>
+					</div>
+
+					{/* Time Range */}
+					<p className="text-sm text-gray-700 whitespace-nowrap relative">
+						{startTime} - {endTime}
 					</p>
-					<p className="text-xs text-gray-500">
-						{eventInfo.event.extendedProps?.description || 'No description'}
-					</p>
-					{eventInfo.event.extendedProps?.assignedTo ? (
-						<p className="text-xs text-green-500">
-							Assigned to: {eventInfo.event.extendedProps.assignedUserFirstName}{' '}
-							{eventInfo.event.extendedProps.assignedUserLastName}
+
+					{/* Assigned User */}
+					{extendedProps?.assignedTo ? (
+						<p className="text-sm text-green-500 relative">
+							Assigned to: {assignedFirstName} {assignedLastName.charAt(0)}{' '}
+							<span className="text-xs text-gray-500 block truncate">
+								({assignedEmail})
+							</span>
 						</p>
 					) : (
-						<p className="text-xs text-red-500">Unassigned</p>
+						<p className="text-sm text-red-500 relative">Unassigned</p>
+					)}
+
+					{/* Description */}
+					{extendedProps?.description && (
+						<p className="text-sm text-gray-600 truncate relative">
+							<span className="font-semibold">Description:</span>{' '}
+							{extendedProps.description}
+						</p>
 					)}
 				</HoverCardContent>
 			</HoverCard>
@@ -93,8 +132,8 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 			<FullCalendar
 				plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
 				initialView="dayGridMonth"
-				editable={true}
-				selectable={true}
+				editable={false}
+				selectable={false}
 				selectMirror={true}
 				dayMaxEvents={true}
 				events={events}
