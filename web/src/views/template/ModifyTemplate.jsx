@@ -11,7 +11,7 @@ const daysOfWeek = [
 	{ id: 7, name: 'Sunday' },
 ];
 
-function CreateTemplate({ templateId, onClose }) {
+function ModifyTemplate({ templateId, onClose }) {
 	const { user } = useContext(AuthContext);
 
 	if (!user) {
@@ -226,4 +226,4 @@ function CreateTemplate({ templateId, onClose }) {
 	);
 }
 
-export default CreateTemplate;
+export default ModifyTemplate;

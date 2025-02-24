@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { AuthContext } from '../../context/AuthContext';
 import { ConsentContext } from '../../context/ConsentContext';
 import Layout from '../../components/Layout';
-import CreateTemplate from './CreateTemplate'; // Import CreateTemplate component
+import ModifyTemplate from './ModifyTemplate'; // Import CreateTemplate component
 
 import {
 	Dialog,
@@ -194,7 +194,7 @@ function TemplateRenderer() {
 						</DialogHeader>
 
 						{/* Render the CreateTemplate component for editing */}
-						{editingTemplate && <CreateTemplate templateId={editingTemplate} />}
+						{editingTemplate && <ModifyTemplate templateId={editingTemplate} />}
 					</DialogContent>
 				</Dialog>
 			</div>
