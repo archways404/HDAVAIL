@@ -79,17 +79,20 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 
 		return (
 			<HoverCard>
-				<HoverCardTrigger className="cursor-pointer block p-1 z-10">
-					<span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-						{eventInfo.event.title}
-					</span>
+				<HoverCardTrigger asChild>
+					<div className="cursor-pointer block p-1 z-10">
+						<span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+							{eventInfo.event.title}
+						</span>
+					</div>
 				</HoverCardTrigger>
-				<HoverCardContent className="p-3 border border-gray-300 bg-white dark:bg-gray-800 shadow-lg rounded-md z-1000 w-[250px] relative">
-					{/* Background Fix */}
-					<div className="absolute inset-0 bg-white dark:bg-gray-800 opacity-100 rounded-md"></div>
-
+				<HoverCardContent
+					side="top" // Ensures the popover renders above the element
+					align="start" // Centers the popover relative to the trigger
+					sideOffset={2} // Provides spacing so it doesn't touch the event title
+					className="p-3 border border-gray-300 bg-white dark:bg-gray-800 shadow-lg rounded-md w-[250px] z-[9999]">
 					{/* Shift Title + Date */}
-					<div className="flex justify-between items-center relative">
+					<div className="flex justify-between items-center">
 						<p className="text-sm font-semibold">
 							{extendedProps.shiftTypeLong}
 						</p>
@@ -99,25 +102,23 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 					</div>
 
 					{/* Time Range */}
-					<p className="text-sm text-gray-700 whitespace-nowrap relative">
+					<p className="text-sm text-gray-700 whitespace-nowrap">
 						{startTime} - {endTime}
 					</p>
 
 					{/* Assigned User */}
 					{extendedProps?.assignedTo ? (
-						<p className="text-sm text-green-500 relative">
-							Assigned to: {assignedFirstName} {assignedLastName.charAt(0)}{' '}
-							<span className="text-xs text-gray-500 block truncate">
-								({assignedEmail})
-							</span>
+						<p className="text-sm text-green-500">
+							{assignedFirstName} {assignedLastName.charAt(0)}{' '}
+							<span className="text-xs text-gray-500">({assignedEmail})</span>
 						</p>
 					) : (
-						<p className="text-sm text-red-500 relative">Unassigned</p>
+						<p className="text-sm text-red-500">Unassigned</p>
 					)}
 
 					{/* Description */}
 					{extendedProps?.description && (
-						<p className="text-sm text-gray-600 truncate relative">
+						<p className="text-sm text-gray-600 truncate">
 							<span className="font-semibold">Description:</span>{' '}
 							{extendedProps.description}
 						</p>
@@ -132,8 +133,8 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 			<FullCalendar
 				plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
 				initialView="dayGridMonth"
-				editable={false}
-				selectable={false}
+				editable={true}
+				selectable={true}
 				selectMirror={true}
 				dayMaxEvents={true}
 				events={events}
