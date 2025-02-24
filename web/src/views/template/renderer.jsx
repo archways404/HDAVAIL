@@ -3,6 +3,8 @@ import Cookies from 'js-cookie';
 import { AuthContext } from '../../context/AuthContext';
 import { ConsentContext } from '../../context/ConsentContext';
 import Layout from '../../components/Layout';
+import CreateTemplate from './CreateTemplate'; // Import CreateTemplate component
+
 import {
 	Dialog,
 	DialogTrigger,
@@ -17,6 +19,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 function TemplateRenderer() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [editDialogOpen, setEditDialogOpen] = useState(false);
+	const [editingTemplate, setEditingTemplate] = useState(null);
 	const [templateMeta, setTemplateMeta] = useState([]);
 	const [newTemplate, setNewTemplate] = useState({ name: '', private: false });
 
@@ -85,14 +89,26 @@ function TemplateRenderer() {
 						templateMeta.map((template) => (
 							<li
 								key={template.template_id}
-								className="border-b border-gray-300 dark:border-gray-700 py-2 last:border-none text-gray-800 dark:text-gray-300">
-								<span className="font-medium">{template.name}</span>{' '}
-								<span
-									className={`ml-2 ${
-										template.private ? 'text-red-500' : 'text-green-500'
-									}`}>
-									{template.private ? '(Private)' : '(Public)'}
-								</span>
+								className="border-b border-gray-300 dark:border-gray-700 py-2 last:border-none text-gray-800 dark:text-gray-300 flex justify-between items-center">
+								<div>
+									<span className="font-medium">{template.name}</span>{' '}
+									<span
+										className={`ml-2 ${
+											template.private ? 'text-red-500' : 'text-green-500'
+										}`}>
+										{template.private ? '(Private)' : '(Public)'}
+									</span>
+								</div>
+
+								{/* Edit Button */}
+								<Button
+									className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+									onClick={() => {
+										setEditingTemplate(template.template_id);
+										setEditDialogOpen(true);
+									}}>
+									Edit
+								</Button>
 							</li>
 						))
 					) : (
@@ -162,6 +178,25 @@ function TemplateRenderer() {
 						</DialogContent>
 					</Dialog>
 				</div>
+
+				{/* Edit Template Modal */}
+				<Dialog
+					open={editDialogOpen}
+					onOpenChange={setEditDialogOpen}>
+					<DialogContent className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
+						<DialogHeader>
+							<DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+								Edit Template
+							</DialogTitle>
+							<DialogDescription className="text-gray-500 dark:text-gray-400">
+								Modify the existing template details.
+							</DialogDescription>
+						</DialogHeader>
+
+						{/* Render the CreateTemplate component for editing */}
+						{editingTemplate && <CreateTemplate templateId={editingTemplate} />}
+					</DialogContent>
+				</Dialog>
 			</div>
 		</Layout>
 	);
