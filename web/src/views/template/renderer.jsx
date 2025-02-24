@@ -1,9 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { AuthContext } from '../../context/AuthContext';
-import { ConsentContext } from '../../context/ConsentContext';
 import Layout from '../../components/Layout';
-import ModifyTemplate from './ModifyTemplate'; // Import CreateTemplate component
+import ModifyTemplate from './ModifyTemplate';
 
 import {
 	Dialog,
@@ -18,25 +16,19 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 function TemplateRenderer() {
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [editDialogOpen, setEditDialogOpen] = useState(false);
+	const [viewState, setViewState] = useState('list'); // 'list' or 'edit'
 	const [editingTemplate, setEditingTemplate] = useState(null);
 	const [templateMeta, setTemplateMeta] = useState([]);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [newTemplate, setNewTemplate] = useState({ name: '', private: false });
 
 	const { user } = useContext(AuthContext);
-	const { consent } = useContext(ConsentContext);
-
-	const allCategories = ['necessary', 'preferences', 'analytics'];
-	const permissionsObject = allCategories.reduce((acc, category) => {
-		acc[category] = consent?.acceptedCategories?.includes(category) ?? false;
-		return acc;
-	}, {});
 
 	if (!user) {
 		return null;
 	}
 
+	// Fetch template metadata
 	const fetchTemplateMeta = async () => {
 		if (!user?.uuid) return;
 		try {
@@ -50,22 +42,20 @@ function TemplateRenderer() {
 		}
 	};
 
+	// Create a new template
 	const createTemplateMeta = async () => {
 		try {
-			const response = await fetch(
-				import.meta.env.VITE_BASE_ADDR + '/createTemplateMeta',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						creator_id: user.uuid,
-						...newTemplate,
-					}),
-				}
-			);
-			const data = await response.json();
+			await fetch(import.meta.env.VITE_BASE_ADDR + '/createTemplateMeta', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					creator_id: user.uuid,
+					...newTemplate,
+				}),
+			});
 			fetchTemplateMeta();
-			setIsDialogOpen(false); // Close dialog after creation
+			setIsDialogOpen(false);
+			setNewTemplate({ name: '', private: false });
 		} catch (error) {
 			console.error('Error creating template meta:', error);
 		}
@@ -75,10 +65,32 @@ function TemplateRenderer() {
 		fetchTemplateMeta();
 	}, [user]);
 
+	// Switch to edit mode
+	const handleEdit = (templateId) => {
+		setEditingTemplate(templateId);
+		setViewState('edit');
+	};
+
+	// Go back to template list
+	const handleBack = () => {
+		setViewState('list');
+		setEditingTemplate(null);
+	};
+
+	// **EDIT MODE** - Show ModifyTemplate
+	if (viewState === 'edit' && editingTemplate) {
+		return (
+			<ModifyTemplate
+				templateId={editingTemplate}
+				onClose={handleBack}
+			/>
+		);
+	}
+
+	// **DEFAULT MODE** - Show Template List + Create Template Dialog
 	return (
 		<Layout>
 			<div className="max-w-4xl mx-auto p-8">
-				{/* Title */}
 				<h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
 					Templates
 				</h2>
@@ -103,10 +115,7 @@ function TemplateRenderer() {
 								{/* Edit Button */}
 								<Button
 									className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-									onClick={() => {
-										setEditingTemplate(template.template_id);
-										setEditDialogOpen(true);
-									}}>
+									onClick={() => handleEdit(template.template_id)}>
 									Edit
 								</Button>
 							</li>
@@ -178,25 +187,6 @@ function TemplateRenderer() {
 						</DialogContent>
 					</Dialog>
 				</div>
-
-				{/* Edit Template Modal */}
-				<Dialog
-					open={editDialogOpen}
-					onOpenChange={setEditDialogOpen}>
-					<DialogContent className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
-						<DialogHeader>
-							<DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-								Edit Template
-							</DialogTitle>
-							<DialogDescription className="text-gray-500 dark:text-gray-400">
-								Modify the existing template details.
-							</DialogDescription>
-						</DialogHeader>
-
-						{/* Render the CreateTemplate component for editing */}
-						{editingTemplate && <ModifyTemplate templateId={editingTemplate} />}
-					</DialogContent>
-				</Dialog>
 			</div>
 		</Layout>
 	);

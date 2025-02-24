@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 
 const daysOfWeek = [
@@ -18,22 +18,10 @@ function ModifyTemplate({ templateId, onClose }) {
 		return null;
 	}
 
-	console.log('indata', templateId);
-
 	const [shiftTypes, setShiftTypes] = useState([]);
 	const [currentDay, setCurrentDay] = useState(1);
 	const [entries, setEntries] = useState([]);
-	const [showAddEntryForm, setShowAddEntryForm] = useState(false);
-	const [newEntry, setNewEntry] = useState({
-		shift_type_id: '',
-		title: '',
-		start_time: '',
-		end_time: '',
-	});
-	const [editingIndex, setEditingIndex] = useState(null);
-	const [showSummary, setShowSummary] = useState(false);
 
-	// Fetch shift types
 	useEffect(() => {
 		const fetchShiftTypes = async () => {
 			try {
@@ -53,7 +41,6 @@ function ModifyTemplate({ templateId, onClose }) {
 		fetchShiftTypes();
 	}, []);
 
-	// Fetch template data
 	useEffect(() => {
 		const fetchTemplateData = async () => {
 			if (!templateId) return;
@@ -67,80 +54,14 @@ function ModifyTemplate({ templateId, onClose }) {
 					throw new Error('Failed to fetch template data');
 				}
 				const data = await response.json();
-				if (data.length > 0) {
-					const updatedData = data.map((entry) => {
-						const shift = shiftTypes.find(
-							(s) => s.shift_type_id === entry.shift_type_id
-						);
-						return {
-							template_id: templateId,
-							shift_type_id: entry.shift_type_id,
-							title: shift ? shift.name_short : entry.title,
-							start_time: entry.start_time,
-							end_time: entry.end_time,
-							weekday: entry.weekday,
-						};
-					});
-					setEntries(updatedData);
-				}
+				setEntries(data);
 			} catch (error) {
 				console.error('Error fetching template data:', error);
 			}
 		};
 
-		if (shiftTypes.length > 0) {
-			fetchTemplateData();
-		}
-	}, [templateId, shiftTypes]);
-
-	const handleNextDay = () => {
-		if (currentDay < 7) {
-			setCurrentDay((prev) => prev + 1);
-		} else {
-			setShowSummary(true);
-		}
-	};
-
-	const handlePreviousDay = () => {
-		if (currentDay > 1) {
-			setCurrentDay((prev) => prev - 1);
-		} else {
-			setShowSummary(false);
-		}
-	};
-
-	const handleAddOrEditEntry = () => {
-		const entryToSave = {
-			template_id: templateId,
-			shift_type_id: newEntry.shift_type_id,
-			title: newEntry.title,
-			start_time: newEntry.start_time,
-			end_time: newEntry.end_time,
-			weekday: currentDay,
-		};
-
-		if (editingIndex !== null) {
-			setEntries((prev) => {
-				const updatedEntries = [...prev];
-				updatedEntries[editingIndex] = entryToSave;
-				return updatedEntries;
-			});
-		} else {
-			setEntries((prev) => [...prev, entryToSave]);
-		}
-
-		setNewEntry({ shift_type_id: '', title: '', start_time: '', end_time: '' });
-		setShowAddEntryForm(false);
-		setEditingIndex(null);
-	};
-
-	const handleDeleteEntry = (index) => {
-		setEntries((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	const currentDayEntries = entries.filter(
-		(entry) => entry.weekday === currentDay
-	);
+		fetchTemplateData();
+	}, [templateId]);
 
 	return (
 		<div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -150,6 +71,12 @@ function ModifyTemplate({ templateId, onClose }) {
 					<h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
 						Modify Template
 					</h2>
+					{/* Back Button */}
+					<button
+						className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+						onClick={onClose}>
+						← Back
+					</button>
 				</div>
 
 				{/* Current Day */}
@@ -161,28 +88,25 @@ function ModifyTemplate({ templateId, onClose }) {
 				<div className="flex justify-between mt-4">
 					<button
 						className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-						onClick={handlePreviousDay}
-						disabled={currentDay === 1 && !showSummary}>
-						{currentDay === 1 ? 'Start' : 'Previous'}
+						onClick={() => setCurrentDay((prev) => Math.max(1, prev - 1))}>
+						Previous
 					</button>
 					<button
-						className={`${
-							currentDay === 7 ? 'bg-purple-500' : 'bg-blue-500'
-						} text-white px-4 py-2 rounded`}
-						onClick={handleNextDay}>
-						{currentDay === 7 ? 'Continue' : 'Next'}
+						className="bg-blue-500 text-white px-4 py-2 rounded"
+						onClick={() => setCurrentDay((prev) => Math.min(7, prev + 1))}>
+						Next
 					</button>
 				</div>
 
 				{/* Entries List */}
 				<div className="mt-4">
-					{currentDayEntries.length === 0 ? (
+					{entries.length === 0 ? (
 						<p className="text-gray-600 dark:text-gray-300">
 							No entries for today.
 						</p>
 					) : (
 						<ul className="space-y-2">
-							{currentDayEntries.map((entry, index) => (
+							{entries.map((entry, index) => (
 								<li
 									key={index}
 									className="p-4 bg-gray-100 dark:bg-gray-700 rounded flex justify-between items-center">
@@ -196,23 +120,10 @@ function ModifyTemplate({ templateId, onClose }) {
 										</p>
 									</div>
 									<div className="space-x-2">
-										<button
-											className="bg-yellow-500 text-white px-2 py-1 rounded"
-											onClick={() => {
-												setNewEntry({
-													shift_type_id: entry.shift_type_id,
-													title: entry.title,
-													start_time: entry.start_time,
-													end_time: entry.end_time,
-												});
-												setEditingIndex(index);
-												setShowAddEntryForm(true);
-											}}>
+										<button className="bg-yellow-500 text-white px-2 py-1 rounded">
 											Edit
 										</button>
-										<button
-											className="bg-red-500 text-white px-2 py-1 rounded"
-											onClick={() => handleDeleteEntry(index)}>
+										<button className="bg-red-500 text-white px-2 py-1 rounded">
 											Delete
 										</button>
 									</div>
