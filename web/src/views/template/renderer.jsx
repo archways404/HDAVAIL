@@ -84,7 +84,7 @@ function TemplateRenderer() {
 					{templateMeta.length > 0 ? (
 						templateMeta.map((template) => (
 							<li
-								key={template.id}
+								key={template.template_id}
 								className="border-b border-gray-300 dark:border-gray-700 py-2 last:border-none text-gray-800 dark:text-gray-300">
 								<span className="font-medium">{template.name}</span>{' '}
 								<span
