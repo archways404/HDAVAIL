@@ -15,7 +15,11 @@ import Logout from './components/Logout.jsx';
 import NotFound from './views/not-found_page/notFound';
 import Welcome from './views/welcome/welcome_page.jsx';
 import Invite from './views/invite_page/invite';
-import Schedule from './views/display-schedule_page/schedule';
+//import Schedule from './views/display-schedule_page/schedule';
+import Schedule from './views/schedule/renderer';
+
+
+
 import AuthWrapper from './components/AuthWrapper';
 import UnAuthWrapper from './components/UnAuthWrapper';
 
