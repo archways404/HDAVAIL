@@ -3,7 +3,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import EventModal from './EventModal';
 import enGbLocale from '@fullcalendar/core/locales/en-gb';
 import svLocale from '@fullcalendar/core/locales/sv';
@@ -12,10 +12,13 @@ import {
 	HoverCardTrigger,
 	HoverCardContent,
 } from '@/components/ui/hover-card';
+import { AuthContext } from '../../context/AuthContext';
 
 function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 	const [isModalOpen, setModalOpen] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState(null);
+
+	const { user } = useContext(AuthContext);
 
 	function getCurrentTime() {
 		const now = new Date();
@@ -182,19 +185,21 @@ function CalendarView({ events, onEventSubmit, onDeleteEvent }) {
 				}}
 			/>
 			{/* Event Modal */}
-			<EventModal
-				isOpen={isModalOpen}
-				event={selectedEvent}
-				onClose={() => setModalOpen(false)}
-				onSubmit={(event) => {
-					onEventSubmit(event);
-					setModalOpen(false);
-				}}
-				onDelete={() => {
-					onDeleteEvent(selectedEvent.id);
-					setModalOpen(false);
-				}}
-			/>
+			{user?.role === 'admin' && (
+				<EventModal
+					isOpen={isModalOpen}
+					event={selectedEvent}
+					onClose={() => setModalOpen(false)}
+					onSubmit={(event) => {
+						onEventSubmit(event);
+						setModalOpen(false);
+					}}
+					onDelete={() => {
+						onDeleteEvent(selectedEvent.id);
+						setModalOpen(false);
+					}}
+				/>
+			)}
 		</div>
 	);
 }
